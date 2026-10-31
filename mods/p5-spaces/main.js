@@ -514,6 +514,7 @@ export default class Spaces extends View {
     const done = mine.filter((a) => a.status === "done").length;
     const waiting = blocked ? "blocked" : done ? "done" : null;
     const waitingCount = blocked || done;
+    const working = mine.some((a) => a.status === "working");
     return v_flex()
       .relative()
       .id(`space-${w.id}`)
@@ -583,6 +584,15 @@ export default class Spaces extends View {
                   : div().truncate().text_color(t.foreground).child(w.name),
               )
               .when(Boolean(tail), (el) => el.child(tail)),
+          )
+          .when(working, (el) =>
+            el.child(
+              svg("mods/workspace-chrome/spinner.svg")
+                .size(12)
+                .flex_none()
+                .text_color(t.working)
+                .spin(900),
+            ),
           )
           .when(Boolean(waiting), (el) =>
             el.child(
