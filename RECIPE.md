@@ -80,6 +80,7 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
 - `colors.border: "#000000"` also blacks out every other use of `t.border`: the separators in `menu` and `new-menu` vanish against the `#000000` popover, and the frames and dividers in `files` and `changes` nearly vanish against `#0d0d0d`.
 - `line_height` given a bare number is a multiplier (`1.1`), not pixels.
 - Herdr doesn't notice edits behind a symlinked mod or layout, and a symlinked mod can't load SVGs from its own folder. Switch layouts (`ctrl-shift-l`) to reload.
+- When `layouts/persona5.svg` is a symlink, the layout picker shows an empty preview card. Copy the file into `~/.config/herdr-app/layouts/` instead of linking it.
 - `herdr` exports a `window()` function, while the drawing `window` is gpui-kit's global. Import herdr's as `window as appWindow`, or call `globalThis.window.paint_path`.
 - `p5-agents` keeps state-change times in its own `localStorage`. On its first run every agent is stamped "now", so HP and the time are off until each agent changes state once.
 - HP counts from the agent's last state change, not its last API call, and it means nothing for agents that aren't Claude Code. SP counts turns, not tokens.
