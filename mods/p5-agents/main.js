@@ -373,7 +373,7 @@ export default class Agents extends View {
             cx.notify();
           })
           .on_click(() => run("pane.focus", { pane: a.pane }))
-          .when(a.focused, (el) => el.child(globalThis.window.paint_path(CARD, "#e60012").absolute().top(4).left(6).right(-6).bottom(-4)))
+          .when(a.focused, (el) => el.child(div().id(`shadow-${a.address}`).absolute().top(4).left(6).w_full().h_full().loop("top", { from: 1, to: 8, period: 1500 }).child(globalThis.window.paint_path(CARD, "#e60012").absolute().inset_0())))
           .child(globalThis.window.paint_path(CARD, "#000000").absolute().inset_0())
           .when(a.focused, (el) => el.child(globalThis.window.paint_path(CARD_EDGE, "#ffffff").absolute().inset_0()))
           .child(div().id(`agent-fold-${a.address}`).flex_none()

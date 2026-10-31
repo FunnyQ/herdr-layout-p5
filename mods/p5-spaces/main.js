@@ -525,7 +525,7 @@ export default class Spaces extends View {
       .justify_center()
       .rounded(8)
       .when(on && !p5(), (el) => el.bg(t.selected))
-      .when(on && p5(), (el) => el.child(globalThis.window.paint_path(SLANT, "#e60012").absolute().top(4).left(6).right(-6).bottom(-4)).child(globalThis.window.paint_path(SLANT, "#000000").absolute().inset_0()).child(globalThis.window.paint_path(SLANT_EDGE, "#ffffff").absolute().inset_0()))
+      .when(on && p5(), (el) => el.child(div().id(`shadow-${w.id}`).absolute().top(4).left(6).w_full().h_full().loop("top", { from: 1, to: 8, period: 1500 }).child(globalThis.window.paint_path(SLANT, "#e60012").absolute().inset_0())).child(globalThis.window.paint_path(SLANT, "#000000").absolute().inset_0()).child(globalThis.window.paint_path(SLANT_EDGE, "#ffffff").absolute().inset_0()))
       .when(!on, (el) => el.hover((s) => s.bg(t.hover)))
       .when(
         this.pressed !== null && this.over === i && this.pressed !== i,

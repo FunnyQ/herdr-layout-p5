@@ -67,7 +67,7 @@ export default class Tabs extends View {
       return h_flex().id(`tab-${c.id}`).relative().h(30).px(18).gap(7).items_center().flex_none().text_size(13).font_weight(800).italic()
         .text_color(c.active ? "#ffffff" : "#ffb8bd")
         .when(c.active, el => el.h(32).px(20)
-          .child(shape(ACTIVE, "#e60012").top(4).left(5).right(-5).bottom(-4))
+          .child(div().id(`shadow-${c.id}`).absolute().top(4).left(5).w_full().h_full().loop("left", { from: 2, to: 9, period: 1500 }).child(shape(ACTIVE, "#e60012")))
           .child(shape(ACTIVE, "#000000"))
           .child(shape(ACTIVE_EDGE, "#ffffff")))
         .when(!c.active, el => el.child(slant("#7a0009")))
