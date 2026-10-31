@@ -472,8 +472,10 @@ export default class Agents extends View {
     };
     // The block is as tall as the inbox, capped, so the spaces list keeps the rest.
     if (!collapsed) {
-      const body = groups.reduce((h, g) => h + 30 + (this.folded.has(g.id) ? 0 : g.members.length * 76), 0);
-      const px = Math.min(56 + (body ? body + 12 : 0), 420);
+      const card = (a) => 76 + (this.folded.has(a.address) ? 0 : this.tree(all, a.address).length * 26);
+      const body = groups.reduce((h, g) => h + 30 + (this.folded.has(g.id) ? 0 : g.members.reduce((m, a) => m + card(a), 0)), 0);
+      // 53 title row + 28 bottom row, plus room for the selected card's red copy
+      const px = body ? Math.min(53 + 28 + body + 8, 420) : 56;
       if (this.px !== px) {
         this.px = px;
         run("layout.resize", { id: "agents", px });
