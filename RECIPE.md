@@ -67,7 +67,12 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
   - Stripes are a full-rect path painted with `Background.pattern_slash("#00000040", 3, 14)`.
 - Each mod overrides theme colors locally (`{ ...theme(), chrome: "#b3000e", ... }`).
 - HP reads a constant `CACHE_TTL` in `p5-agents/main.js`: 60 minutes, for Claude plans with the 1-hour prompt cache. Set it to `5 * 60000` for the default 5-minute cache.
-- SP reads `turn` from `terminals()`, the same field `hc ls --json` reports.
+- SP reads `turn` from `terminals()`, the same field `hc ls --json` reports. It is a rough "how worn is this session" gauge, not the context window.
+- To make SP the context window left instead (`100 - used / window × 100`), read each agent's own session files. Herdr does not report context use, so this means running programs and reading files outside the space folders. Tell the person that before building it.
+  - **Codex:** take `hc get <t>`'s `pid`, find the `codex` child with `pgrep -P`, and find its open `~/.codex/sessions/**/rollout-*.jsonl` with `lsof`. The last `token_count` event has `info.last_token_usage.input_tokens` (used) and `info.model_context_window` (window).
+  - **Claude Code:** find the `claude` child the same way, read `~/.claude/sessions/<pid>.json` for `sessionId`, then read `~/.claude/projects/<cwd with / and . as ->/<sessionId>.jsonl`. Used is the last assistant message's `usage.input_tokens + cache_read_input_tokens + cache_creation_input_tokens`. The window is not in the file: infer it from the model id (200k, or 1M for `[1m]` models).
+  - **OpenCode:** usage is in `~/.local/share/opencode/opencode.db` (SQLite). Look up the window from the model's limits.
+  - Poll on a timer (`cx.timer.every`), not every render, and keep the turn-based SP for any agent whose file can't be found.
 - Icons load from the shipped mods' folders (`mods/workspace-chrome/`, `mods/pane/`, `mods/tabs/`).
 - Uses the shipped mods `files`, `changes`, `menu` and `new-menu`.
 - **Runs programs:** `p5-spaces` runs `git status` / `git rev-parse` in each space's folder, local or remote, to show branches, and calls `hc machine ls`. Nothing reaches the network, and nothing reads files outside the space folders.
