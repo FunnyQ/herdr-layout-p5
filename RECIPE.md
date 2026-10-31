@@ -15,7 +15,8 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
   - **Spaces** (`p5-spaces`): each row has a colored avatar letter and the name in weight-800 italic caps. Under the name is the branch with ahead/behind counts in `#ffb8bd`.
     - Unselected rows are 46px tall (32px without a branch line) with 12px side padding. Every second row is indented 12px for a zig-zag.
     - The active space is a selected-style quad, 66px tall (48px without a branch line), padded 24px left and 20px right, with a `#bdbdbd` branch line.
-  - **Agents** (`p5-agents`): the block grows with its content, from 56px up to 420px. Agents are grouped under their space name, and each agent is a 68px black irregular card:
+    - When any agent in the space is working, a 12px `#ffd400` spinner sits right of the name, left of the blocked `!` or done dot.
+  - **Agents** (`p5-agents`): the block grows with its content, from 56px up to 420px, so one card never shows a scrollbar. The default Priority sort lists sections `Needs you`, `Done`, then `Working` (idle agents are hidden); Grouped by space lists every agent under its space name. Each agent is a 68px black irregular card:
     - **Left:** the program icon at 30px, like a party portrait.
     - **Middle:** the name, then a stat line, then two 4px bars:
       - `HP` in `#5ef2ff`: minutes left before the prompt cache goes cold. It is full while the agent is working and counts down from its last state change. It shows a grey `COLD` once the time runs out, or when the agent has never run a turn.
@@ -78,6 +79,7 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
 - `.loop()` does not animate a `paint_path` element directly. Wrap the path in a `div()` with an `.id(...)` and put `.loop()` on the wrapper.
 - A running `.loop()` repaints the whole window at about 30fps for as long as the selected quad is on screen.
 - `colors.border: "#000000"` also blacks out every other use of `t.border`: the separators in `menu` and `new-menu` vanish against the `#000000` popover, and the frames and dividers in `files` and `changes` nearly vanish against `#0d0d0d`.
+- The Agents block sizes itself with `layout.resize`. Count its 53px title row, 28px bottom row, 30px per section header, 76px per card, 26px per unfolded sub-agent and 8px for the red copy, or one card shows a scrollbar.
 - `line_height` given a bare number is a multiplier (`1.1`), not pixels.
 - Herdr doesn't notice edits behind a symlinked mod or layout, and a symlinked mod can't load SVGs from its own folder. Switch layouts (`ctrl-shift-l`) to reload.
 - When `layouts/persona5.svg` is a symlink, the layout picker shows an empty preview card. Copy the file into `~/.config/herdr-app/layouts/` instead of linking it.
