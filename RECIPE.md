@@ -6,7 +6,7 @@ A herdr-app layout in the style of Persona 5's menus. Every bar is deep red with
 
 ## What you see
 
-Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45°. "Selected style" means a black irregular quad (corners at different heights), a 2px white outline, and a `#e60012` copy of the quad offset about 5px right and 4px down. "Unselected style" means a `#7a0009` slant with `#ffb8bd` text. Text is heavy italic caps throughout.
+Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45°. "Selected style" means a black irregular quad (corners at different heights), a 2px white outline, and a `#e60012` copy of the quad offset about 5px right and 4px down. On the active space, the focused agent and the active tab, the red copy bobs: it slides between 1px and 8px down (the tab slides between 2px and 9px right) every 1.5s. "Unselected style" means a `#7a0009` slant with `#ffb8bd` text. Text is heavy italic caps throughout.
 
 - **Window background** (behind the panes): flat `#b3000e`. There are no dividers between regions, so the bars and the sidebar run edge to edge.
 - **Sidebar, left, 268px:**
@@ -34,7 +34,8 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
   - `AGENTS N` is selected style: a small label with the count at 18px in `#5ef2ff`, plus `/N` in `#ff5fb4` when N agents are blocked.
   - When any agent is blocked, a `N NEEDS YOU!` chip appears in `#ffd400` with black text.
   - On the right is a white key chip `⌘ ⇧ P` followed by `COMMANDS`.
-- **Theme** `themes/persona5.json`: terminal background `#0d0d0d`, foreground `#f2f2f2`, selection `#6b000a`, cursor `#ff1a2d`, and a red-leaning ANSI palette.
+- **Theme** `themes/persona5.json`: terminal background `#0d0d0d`, foreground `#f2f2f2`, selection `#6b000a`, cursor `#ff1a2d`, and a red-leaning ANSI palette. `colors.border` is `#000000` to hide herdr's overlay frame.
+- **Overlays:** the `herdr-q-saddle` overlays (`q-saddle-project`, `q-saddle-ssh`, `q-saddle-tab`) restyle themselves in P5 when `shared('layout') === 'persona5'`.
 
 ## How it behaves
 
@@ -60,7 +61,8 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
 - Drawing:
   - Every shape is a `PathBuilder.fill().add_polygon(...)` with percentage coordinates, drawn by `window.paint_path(path, color)` as an `.absolute().inset_0()` child behind the text.
   - Outlines use `PathBuilder.stroke(2).add_polygon(shape, true)`. The slanted pane top uses `PathBuilder.stroke(4).move_to(...).line_to(...)`.
-  - The red offset copies are the same path with `.top(4).left(6).right(-6).bottom(-4)`.
+  - The static red offset copies are the same path with `.top(4).left(6).right(-6).bottom(-4)`.
+  - The animated copies (active space, focused agent, active tab) sit in a wrapper `div().id(...).absolute().top(4).left(6).w_full().h_full()` with `.loop("top", { from: 1, to: 8, period: 1500 })`. The active tab uses `.left(5)` and `.loop("left", { from: 2, to: 9, period: 1500 })`.
   - Stripes are a full-rect path painted with `Background.pattern_slash("#00000040", 3, 14)`.
 - Each mod overrides theme colors locally (`{ ...theme(), chrome: "#b3000e", ... }`).
 - HP reads a constant `CACHE_TTL` in `p5-agents/main.js`: 60 minutes, for Claude plans with the 1-hour prompt cache. Set it to `5 * 60000` for the default 5-minute cache.
@@ -73,6 +75,9 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
 
 - A pane frame can only be a rectangle, and a header mod can't draw over it. That is why the slant is a header slab the same color as the terminal, and why a focus border can't follow the slant.
 - A theme file color must be `#rrggbb`. One `#rrggbbaa` value makes the whole layout fail to apply (`... is not #rrggbb`).
+- `.loop()` does not animate a `paint_path` element directly. Wrap the path in a `div()` with an `.id(...)` and put `.loop()` on the wrapper.
+- A running `.loop()` repaints the whole window at about 30fps for as long as the selected quad is on screen.
+- `colors.border: "#000000"` also blacks out every other use of `t.border`: the separators in `menu` and `new-menu` vanish against the `#000000` popover, and the frames and dividers in `files` and `changes` nearly vanish against `#0d0d0d`.
 - `line_height` given a bare number is a multiplier (`1.1`), not pixels.
 - Herdr doesn't notice edits behind a symlinked mod or layout, and a symlinked mod can't load SVGs from its own folder. Switch layouts (`ctrl-shift-l`) to reload.
 - `herdr` exports a `window()` function, while the drawing `window` is gpui-kit's global. Import herdr's as `window as appWindow`, or call `globalThis.window.paint_path`.
