@@ -251,8 +251,8 @@ export default class Agents extends View {
     const rest = list.filter((a) => !this.pins.includes(a.address));
     list = [...pinned, ...rest];
     setAgentOrder(list.map((a) => a.address));
-    // Priority view is an inbox: only agents waiting on the person.
-    const inbox = byPriority ? rest.filter((a) => rankOf(a) >= RANK.done) : rest;
+    // Priority view is an inbox: agents waiting on the person, then the ones still working.
+    const inbox = byPriority ? rest.filter((a) => rankOf(a) >= RANK.working) : rest;
 
     const withKids = (a, i) => {
       const subs = collapsed ? [] : this.tree(all, a.address);
