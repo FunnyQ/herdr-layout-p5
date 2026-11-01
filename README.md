@@ -11,7 +11,7 @@ A Persona 5 style layout for [herdr-app](https://herdr.dev): deep red striped ba
 - `mods/`: six mods the layout draws with.
   - `p5-chrome`: the brand row and the sidebar footer.
   - `p5-spaces`: the spaces list, with branch and ahead/behind counts.
-  - `p5-agents`: agent party cards with HP (prompt cache time left) and SP (turns left).
+  - `p5-agents`: agent party cards with HP (prompt cache time left) and SP (turns left, or context window left).
   - `p5-tabs`: the tab bar.
   - `p5-pane`: the slanted pane header.
   - `p5-status`: the status bar.
@@ -23,30 +23,16 @@ A Persona 5 style layout for [herdr-app](https://herdr.dev): deep red striped ba
 
 ## Install
 
-1. Clone the repo.
+Ask your coding agent to install it:
 
-   ```sh
-   git clone git@github.com:FunnyQ/herdr-layout-p5.git
-   cd herdr-layout-p5
-   ```
+```text
+Install the Persona 5 layout from https://github.com/FunnyQ/herdr-layout-p5 by following the Install section of its RECIPE.md.
+```
 
-2. Copy the layout, theme and mods into your herdr-app config folder.
+The agent asks you how SP should count, then copies the layout, theme and mods into `~/.config/herdr-app/`.
 
-   ```sh
-   cp layouts/persona5.json layouts/persona5.svg ~/.config/herdr-app/layouts/
-   cp themes/persona5.json ~/.config/herdr-app/themes/
-   cp -R mods/p5-* ~/.config/herdr-app/mods/
-   ```
-
-3. Check each mod.
-
-   ```sh
-   for m in mods/p5-*; do herdr-app check "$m"; done
-   ```
-
-4. Switch to the layout from the layout picker, or press `ctrl-shift-l` to cycle layouts until Persona 5 shows.
-
-Copy the files rather than symlinking them. Herdr doesn't notice edits behind a symlinked mod or layout, and a symlinked `persona5.svg` shows an empty card in the layout picker.
+- **Turns:** SP is 100 minus the turns taken. It reads nothing outside the space folders.
+- **Context window:** SP is the percent of the context window left, for Claude Code and Codex. It runs local programs and reads session files under `~/.claude/` and `~/.codex/` (see Privacy).
 
 ## Configure
 
@@ -54,12 +40,22 @@ Copy the files rather than symlinking them. Herdr doesn't notice edits behind a 
 
 ## Privacy
 
-`p5-spaces` runs `git status` and `git rev-parse` in each space's folder, and `hc machine ls`, to show branches. Nothing reaches the network, and nothing reads files outside the space folders.
+`p5-spaces` runs `git status` and `git rev-parse` in each space's folder, and `hc machine ls`, to show branches.
+
+With the context-window SP, `p5-agents` also does this every 15 seconds for each local Claude Code and Codex agent:
+
+- It runs `pgrep`, `ps`, `lsof` and `sqlite3` to find the agent's session.
+- It reads `~/.claude/sessions/`, `~/.claude/settings.json`, the session transcripts under `~/.claude/projects/`, `~/.codex/state_*.sqlite`, and the rollouts under `~/.codex/sessions/`.
+- It reads only the token counts from those files.
+
+Nothing reaches the network.
 
 ## Known limits
 
 - HP counts from the agent's last state change, not its last API call. It is only meaningful for Claude Code.
-- SP counts turns, not tokens. It is not the context window.
+- The context-window SP takes Claude Code's window from `modelSettings.<model>.autoCompactWindow` in `~/.claude/settings.json`, then a top-level `autoCompactWindow`, then 1M. A 200k model with neither set reads too full.
+- The context-window SP finds a Codex session by its `resume` id, else by the newest interactive thread in the agent's folder. Two Codex agents started fresh in the same folder can show the same SP.
+- Agents on other machines, and other agents such as OpenCode, keep the turn-based SP.
 - On the first run, `p5-agents` stamps every agent "now", so HP and the time are off until each agent changes state once.
 - The animated selection slabs repaint the window at about 30fps while they are on screen.
 
