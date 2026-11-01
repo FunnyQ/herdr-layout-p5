@@ -50,48 +50,6 @@ const stripes = () =>
     .paint_path(FULL, Background.pattern_slash("#00000040", 3, 14))
     .absolute()
     .inset_0();
-const TILT = [
-  [0, "14%"],
-  ["100%", 0],
-  ["95%", "100%"],
-  ["2%", "86%"],
-];
-const TAG = PathBuilder.fill().add_polygon(TILT).build();
-const TAG_EDGE = PathBuilder.stroke(2).add_polygon(TILT, true).build();
-const ransom = (label, ink, size) =>
-  h_flex()
-    .items_end()
-    .italic()
-    .font_weight(900)
-    .text_color(ink)
-    .child(
-      div()
-        .text_size(size * 1.45)
-        .line_height(1)
-        .child(label[0]),
-    )
-    .child(div().text_size(size).line_height(1.1).child(label.slice(1)));
-const tag = (label) =>
-  h_flex()
-    .relative()
-    .h(30)
-    .pl(12)
-    .pr(24)
-    .items_center()
-    .child(
-      globalThis.window
-        .paint_path(TAG, "#e60012")
-        .absolute()
-        .top(4)
-        .left(6)
-        .right(-6)
-        .bottom(-4),
-    )
-    .child(globalThis.window.paint_path(TAG, "#000000").absolute().inset_0())
-    .child(
-      globalThis.window.paint_path(TAG_EDGE, "#ffffff").absolute().inset_0(),
-    )
-    .child(ransom(label, "#ffffff", 16));
 // prompt cache lifetime after the last turn; 5 min on default Claude Code, 1 h on plans with the extended TTL
 const CACHE_TTL = 60 * 60000;
 const CARD_SHAPE = [
@@ -1066,8 +1024,8 @@ export default class Agents extends View {
             : g.members.reduce((m, a) => m + card(a), 0)),
         0,
       );
-      // 53 title row + 28 bottom row, plus room for the selected card's red copy
-      const px = body ? Math.min(53 + 28 + body + 8, 540) : 56;
+      // 58 title row + 28 bottom row, plus room for the selected card's red copy
+      const px = body ? Math.min(58 + 28 + body + 8, 540) : 86;
       if (this.px !== px) {
         this.px = px;
         run("layout.resize", { id: "agents", px });
@@ -1092,15 +1050,15 @@ export default class Agents extends View {
         el.child(
           h_flex()
             .px(16)
-            .h(53)
-            .pt(10)
-            .pb(9)
+            .h(58)
+            .pt(4)
+            .pb(4)
             .flex_none()
             .items_center()
             .justify_between()
             .child(
               p5()
-                ? tag("AGENTS")
+                ? image("mods/p5-agents/title-horizontal.png").w(150).h(50).flex_none()
                 : div()
                     .text_size(11.5)
                     .font_medium()

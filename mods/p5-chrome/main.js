@@ -24,17 +24,6 @@ function toggleSidebar() {
 }
 
 const FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
-const TILT = [[0, "14%"], ["100%", 0], ["95%", "100%"], ["2%", "86%"]];
-const TAG = PathBuilder.fill().add_polygon(TILT).build();
-const TAG_EDGE = PathBuilder.stroke(2).add_polygon(TILT, true).build();
-const ransom = (label, ink, size) => h_flex().items_end().italic().font_weight(900).text_color(ink)
-  .child(div().text_size(size * 1.45).line_height(1).child(label[0]))
-  .child(div().text_size(size).line_height(1.1).child(label.slice(1)));
-const tag = (label) => h_flex().relative().h(30).pl(12).pr(24).items_center()
-  .child(globalThis.window.paint_path(TAG, "#e60012").absolute().top(4).left(6).right(-6).bottom(-4))
-  .child(globalThis.window.paint_path(TAG, "#000000").absolute().inset_0())
-  .child(globalThis.window.paint_path(TAG_EDGE, "#ffffff").absolute().inset_0())
-  .child(ransom(label, "#ffffff", 16));
 const FOOTER = PathBuilder.fill().add_polygon([[0, "22%"], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
 const stripes = () => globalThis.window.paint_path(FULL, Background.pattern_slash("#00000040", 3, 14)).absolute().inset_0();
 
@@ -59,7 +48,7 @@ export default class WorkspaceChrome extends View {
     }
     return h_flex().size_full().relative().bg(t.chrome).child(stripes()).pl(collapsed ? 6 : 14).pr(10).gap(4).items_center().text_size(13.5)
       .when(window()?.platform === "macos" && !collapsed, el => el.pl(76))
-      .when(!collapsed, el => el.child(h_flex().flex_1().gap(8).items_center().child(image("frame/welcome/herdr.png").size(20).rounded(5)).child(tag("HERDR"))))
+      .when(!collapsed, el => el.child(h_flex().flex_1().items_center().child(image("mods/p5-chrome/title-collage.png").w(86).h(38).flex_none())))
       .when(!collapsed, el => el.child(this.button("search", svg("mods/workspace-chrome/search.svg").size(15), () => run("mod.open", { name: "picker" }))))
       // On the macOS rail the traffic lights fill the row; the agents list's » unfolds it.
       .when(!(collapsed && window()?.platform === "macos"), el => el.child(this.button("sidebar-toggle", svg("mods/workspace-chrome/sidebar.svg").size(15), toggleSidebar)));

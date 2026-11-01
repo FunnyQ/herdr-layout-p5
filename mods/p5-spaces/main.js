@@ -3,7 +3,7 @@
 // its first terminal is in now, only where unusual: branch, ahead/behind. Agent state lives in the agents list, not here. Click to
 // switch, right-click for its menu, drag to reorder.
 
-import { View, div, svg, PathBuilder, Background } from "gpui-kit";
+import { View, div, image, svg, PathBuilder, Background } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import {
   agents,
@@ -26,17 +26,6 @@ import {
 const P5_COLORS = { chrome: "#b3000ecc", foreground: "#ffffff", muted: "#ffd6d9", dim: "#ffb8bd", hover: "#00000033", selected: "#000000", raised: "#00000055", border: "#000000", working: "#ffd400", done: "#ffffff", blocked: "#ffd400" };
 const FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
 const stripes = () => globalThis.window.paint_path(FULL, Background.pattern_slash("#00000040", 3, 14)).absolute().inset_0();
-const TILT = [[0, "14%"], ["100%", 0], ["95%", "100%"], ["2%", "86%"]];
-const TAG = PathBuilder.fill().add_polygon(TILT).build();
-const TAG_EDGE = PathBuilder.stroke(2).add_polygon(TILT, true).build();
-const ransom = (label, ink, size) => h_flex().items_end().italic().font_weight(900).text_color(ink)
-  .child(div().text_size(size * 1.45).line_height(1).child(label[0]))
-  .child(div().text_size(size).line_height(1.1).child(label.slice(1)));
-const tag = (label) => h_flex().relative().h(30).pl(12).pr(24).items_center()
-  .child(globalThis.window.paint_path(TAG, "#e60012").absolute().top(4).left(6).right(-6).bottom(-4))
-  .child(globalThis.window.paint_path(TAG, "#000000").absolute().inset_0())
-  .child(globalThis.window.paint_path(TAG_EDGE, "#ffffff").absolute().inset_0())
-  .child(ransom(label, "#ffffff", 16));
 const p5 = () => true;
 
 function find(node, id) {
@@ -702,14 +691,14 @@ export default class Spaces extends View {
       .text_size(13)
       .child(
         h_flex()
-          .h(p5() ? 40 : 31)
+          .h(p5() ? 58 : 31)
           .pl(16)
           .pr(10)
           .items_center()
           .justify_between()
           .text_size(p5() ? 15 : 11.5)
           .text_color(p5() ? "#000000" : t.dim)
-          .when(!collapsed, (el) => el.child(p5() ? tag("SPACES") : "Spaces"))
+          .when(!collapsed, (el) => el.child(p5() ? image("mods/p5-spaces/title-horizontal.png").w(145).h(50).flex_none() : "Spaces"))
           .child(
             div()
               .id("space-new")
