@@ -84,7 +84,7 @@ export default class Tabs extends View {
   }
 
   render() {
-    const t = { ...theme(), chrome: "#b3000e", raised: "#000000", muted: "#ffffff", foreground: "#ffffff", dim: "#ffb8bd", hover: "#00000033", selected: "#000000" };
+    const t = { ...theme(), chrome: "#b3000ecc", raised: "#000000", muted: "#ffffff", foreground: "#ffffff", dim: "#ffb8bd", hover: "#00000033", selected: "#000000" };
     const space = spaces().find(p => p.active);
     const shown = space?.tabs ?? [];
     const stop = (_e, cx) => cx.stop_propagation();
@@ -124,7 +124,7 @@ export default class Tabs extends View {
     const panelButton = (id, label, icon) => {
       const on = panel && !panel.hidden && body?.active === id;
       return h_flex().id(`panel-${id}`).h(26).px(8).gap(5).flex_none().items_center().rounded(6)
-        .text_size(12).bg(on ? t.selected : t.chrome).text_color(on ? t.foreground : t.muted)
+        .text_size(12).when(on, s => s.bg(t.selected)).text_color(on ? t.foreground : t.muted)
         .hover(s => s.bg(t.hover)).on_mouse_down("left", stop)
         .on_click(() => {
           if (on) run("layout.hide", { id: "panel" });

@@ -64,7 +64,6 @@
       },
       "min": 44,
       "max": 480,
-      "background": "chrome",
       "resizable": false
     },
     {
@@ -100,7 +99,7 @@
                     "height": 42,
                     "position": "top"
                   },
-                  "background": "#0d0d0d",
+                  "background": "#0d0d0d66",
                   "border": {
                     "width": 0,
                     "color": "#000000"
@@ -169,7 +168,10 @@
       "resizable": false
     }
   ],
-  "background": "#b3000e",
+  "background": {
+    "image": "mods/p5-chrome/wallpaper.jpg",
+    "fit": "cover"
+  },
   "terminal_padding": [
     14,
     12
@@ -180,5 +182,6 @@
     16
   ],
   "theme": "persona5",
-  "preview": "layouts/persona5.svg"
+  "preview": "layouts/persona5.svg",
+  "terminal_opacity": 0.6
 }

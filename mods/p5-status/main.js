@@ -21,7 +21,7 @@ export default class WorkspaceStatus extends View {
       .child(svg(`mods/workspace-chrome/${icon}.svg`).size(13)).child(String(text).toUpperCase());
     const mod = window()?.platform === "macos" ? "⌘" : "CTRL";
     const motion = shared("p5.motion") !== false;
-    return h_flex().size_full().px(12).gap(8).items_center().bg("#b3000e").relative().child(stripes()).text_size(11.8).font_weight(800).italic().text_color("#ffffff")
+    return h_flex().size_full().px(12).gap(8).items_center().bg("#b3000ecc").relative().child(stripes()).text_size(11.8).font_weight(800).italic().text_color("#ffffff")
       .child(label(space?.machine ? "server" : "monitor", space?.machine ?? "This computer", TILT_A))
       .when(Boolean(space?.branch), el => el.child(label("branch", space.branch, TILT_B)))
       .child(h_flex().relative().h(24).pl(12).pr(18).gap(5).items_end()

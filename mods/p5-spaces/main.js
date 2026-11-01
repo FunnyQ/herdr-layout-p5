@@ -23,7 +23,7 @@ import {
   props,
 } from "herdr";
 
-const P5_COLORS = { chrome: "#b3000e", foreground: "#ffffff", muted: "#ffd6d9", dim: "#ffb8bd", hover: "#00000033", selected: "#000000", raised: "#00000055", border: "#000000", working: "#ffd400", done: "#ffffff", blocked: "#ffd400" };
+const P5_COLORS = { chrome: "#b3000ecc", foreground: "#ffffff", muted: "#ffd6d9", dim: "#ffb8bd", hover: "#00000033", selected: "#000000", raised: "#00000055", border: "#000000", working: "#ffd400", done: "#ffffff", blocked: "#ffd400" };
 const FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
 const stripes = () => globalThis.window.paint_path(FULL, Background.pattern_slash("#00000040", 3, 14)).absolute().inset_0();
 const TILT = [[0, "14%"], ["100%", 0], ["95%", "100%"], ["2%", "86%"]];

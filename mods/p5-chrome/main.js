@@ -45,7 +45,7 @@ export default class WorkspaceChrome extends View {
       .on_mouse_down("left", (_e, cx) => cx.stop_propagation()).on_click(action).child(label);
   }
   render() {
-    const t = { ...theme(), chrome: "#b3000e", foreground: "#ffffff", muted: "#ffffff", dim: "#ffb8bd", hover: "#00000033" };
+    const t = { ...theme(), chrome: "#b3000ecc", foreground: "#ffffff", muted: "#ffffff", dim: "#ffb8bd", hover: "#00000033" };
     const collapsed = narrow();
     if (props()?.footer) {
       const row = (id, icon, label, dim, action) => h_flex().id(id).h(28).px(8).gap(9).items_center().font_weight(800).italic()

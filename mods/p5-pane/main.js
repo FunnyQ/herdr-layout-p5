@@ -6,8 +6,6 @@
 
 import { View, div, svg, image, PathBuilder, Background } from "gpui-kit";
 
-const STRIPES_FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
-const stripes = () => globalThis.window.paint_path(STRIPES_FULL, Background.pattern_slash("#00000040", 3, 14)).absolute().inset_0();
 const SLAB = PathBuilder.fill().add_polygon([[0, "38%"], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
 const SLAB_TOP = PathBuilder.stroke(4).move_to(0, "38%").line_to("100%", 0).build();
 const TAG_SHAPE = [[0, "14%"], ["96%", 0], ["100%", "86%"], ["3%", "100%"]];
@@ -49,7 +47,7 @@ export default class Pane extends View {
   }
 
   render(cx) {
-    const t = { ...theme(), chrome: "#b3000e", raised: "#000000", muted: "#ffffff", foreground: "#ffffff", dim: "#ffb8bd", hover: "#00000033", selected: "#000000" };
+    const t = { ...theme(), chrome: "#b3000ecc", raised: "#000000", muted: "#ffffff", foreground: "#ffffff", dim: "#ffb8bd", hover: "#00000033", selected: "#000000" };
     const p = this.me();
     if (!p) return div();
     const name = p.program?.shell ? "terminal" : (p.program && p.program.key !== "program" && p.program.name) || p.title || p.program?.name || "shell";
@@ -63,10 +61,10 @@ export default class Pane extends View {
       .pt(12)
       .gap(8)
       .items_center()
-      .bg(t.chrome)
       .relative()
-      .child(stripes())
-      .child(window.paint_path(SLAB, "#0d0d0d").absolute().inset_0())
+      .child(window.paint_path(SLAB, t.chrome).absolute().inset_0())
+      .child(window.paint_path(SLAB, Background.pattern_slash("#00000040", 3, 14)).absolute().inset_0())
+      .child(window.paint_path(SLAB, "#0d0d0d66").absolute().inset_0())
       .when(p.focused, el => el.child(window.paint_path(SLAB_TOP, "#e60012").absolute().top(5).left(0).right(0).bottom(-5)).child(window.paint_path(SLAB_TOP, "#ffffff").absolute().inset_0()))
       .text_size(12)
       .on_hover((hovered, cx) => { this.hovered = hovered; cx.notify(); })
