@@ -72,7 +72,7 @@ export default class Pane extends View {
       .on_hover((hovered, cx) => { this.hovered = hovered; cx.notify(); })
       .on_click(() => run("pane.focus", { pane }))
       .child(h_flex().relative().h(24).pl(10).pr(22).gap(6).items_center().flex_none()
-        .when(p.focused, el => el.child(window.paint_path(TAG, "#e60012").absolute().top(3).left(4).right(-4).bottom(-3)).child(window.paint_path(TAG, "#ffffff").absolute().inset_0()))
+        .when(p.focused, el => el.child(window.paint_path(TAG, "#e60012").absolute().top(0).left(-2).right(-10).bottom(-6)).child(window.paint_path(TAG, "#ffffff").absolute().top(-3).left(-6).right(-6).bottom(-3)))
         .when(!p.focused, el => el.child(window.paint_path(SLANT, "#7a0009").absolute().inset_0()))
         .when(Boolean(pic), (el) => el.child(pic))
         .child(div().truncate().max_w(260).font_weight(800).italic().text_size(13).text_color(p.focused ? "#000000" : "#ffb8bd").child(name.toUpperCase())))
