@@ -35,7 +35,7 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
   - The machine and branch are white irregular chips with black text, tilted in opposite directions.
   - `AGENTS N` is selected style: a small label with the count at 18px in `#5ef2ff`, plus `/N` in `#ff5fb4` when N agents are blocked.
   - When any agent is blocked, a `N NEEDS YOU!` chip appears in `#ffd400` with black text.
-  - On the right is a white key chip `⌘ ⇧ P` followed by `COMMANDS`.
+  - On the right is a key chip `ON` or `OFF` followed by `ANIMATION`, then a white key chip `⌘ ⇧ P` followed by `COMMANDS`. Clicking `ANIMATION` flips the shared `p5.motion` flag. Its chip is white with black text while on, and `#7a0009` with `#ffb8bd` text while off.
 - **Theme** `themes/persona5.json`: terminal background `#0d0d0d`, foreground `#f2f2f2`, selection `#6b000a`, cursor `#ff1a2d`, and a red-leaning ANSI palette. `colors.border` is `#000000` to hide herdr's overlay frame.
 - **Overlays:** the `herdr-q-saddle` overlays (`q-saddle-project`, `q-saddle-ssh`, `q-saddle-tab`) restyle themselves in P5 when `shared('layout') === 'persona5'`.
 
@@ -64,7 +64,7 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
   - Every shape is a `PathBuilder.fill().add_polygon(...)` with percentage coordinates, drawn by `window.paint_path(path, color)` as an `.absolute().inset_0()` child behind the text.
   - Outlines use `PathBuilder.stroke(2).add_polygon(shape, true)`. The slanted pane top uses `PathBuilder.stroke(4).move_to(...).line_to(...)`.
   - The static red offset copies are the same path with `.top(4).left(6).right(-6).bottom(-4)`.
-  - The morphing quads (active space, focused agent, active tab) are a nested `Morph` view per layer, made once with `cx.new(Morph, { fill, edge, lag })`. Each rebuilds its polygon from `Date.now() - lag` on its own 33ms timer. The red layer sits in a wrapper `div().absolute().top(4).left(6)` (`.left(5)` on the tab) with `lag` set to half the 2.4s period. Corner drift is 2% across and 5px up or down on agent cards (a fixed 84px tall), 2% and 8% on spaces, and 4% and 12% on tabs.
+  - The morphing quads (active space, focused agent, active tab) are a nested `Morph` view per layer, made once with `cx.new(Morph, { fill, edge, lag })`. Each rebuilds its polygon from `Date.now() - lag` on its own 33ms timer. When `shared("p5.motion")` is `false`, each renders once at its rest shape, `morphed(0)`, and its timer stops calling `notify`. The red layer sits in a wrapper `div().absolute().top(4).left(6)` (`.left(5)` on the tab) with `lag` set to half the 2.4s period. Corner drift is 2% across and 5px up or down on agent cards (a fixed 84px tall), 2% and 8% on spaces, and 4% and 12% on tabs.
   - Stripes are a full-rect path painted with `Background.pattern_slash("#00000040", 3, 14)`.
 - Each mod overrides theme colors locally (`{ ...theme(), chrome: "#b3000e", ... }`).
 - HP reads a constant `CACHE_TTL` in `p5-agents/main.js`: 60 minutes, for Claude plans with the 1-hour prompt cache. Set it to `5 * 60000` for the default 5-minute cache.
@@ -86,7 +86,7 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
 - A pane frame can only be a rectangle, and a header mod can't draw over it. That is why the slant is a header slab the same color as the terminal, and why a focus border can't follow the slant.
 - A theme file color must be `#rrggbb`. One `#rrggbbaa` value makes the whole layout fail to apply (`... is not #rrggbb`).
 - `.loop()` does not animate a `paint_path` element directly. Wrap the path in a `div()` with an `.id(...)` and put `.loop()` on the wrapper.
-- The `Morph` timers for the active space, focused agent and active tab re-render at about 30fps for as long as the mods are loaded, even with nothing selected on screen.
+- The `Morph` timers for the active space, focused agent and active tab re-render at about 30fps for as long as the mods are loaded, even with nothing selected on screen. With animation off, the timers still wake every 33ms but skip the render.
 - `.loop()` animates only `left`, `top`, `width`, `height` and `opacity`, never a path's points. A morphing shape needs its own nested view that rebuilds the path on a timer; keep it out of the parent's render so a frame rebuilds only that view.
 - `colors.border: "#000000"` also blacks out every other use of `t.border`: the separators in `menu` and `new-menu` vanish against the `#000000` popover, and the frames and dividers in `files` and `changes` nearly vanish against `#0d0d0d`.
 - The Agents block sizes itself with `layout.resize`. Count its 53px title row, 28px bottom row, 30px per section header, 100px per card, 26px per unfolded sub-agent and 8px for the red copy, or one card shows a scrollbar.
