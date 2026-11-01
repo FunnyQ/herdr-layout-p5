@@ -38,9 +38,6 @@ const tag = (label) => h_flex().relative().h(30).pl(12).pr(24).items_center()
   .child(globalThis.window.paint_path(TAG_EDGE, "#ffffff").absolute().inset_0())
   .child(ransom(label, "#ffffff", 16));
 const p5 = () => true;
-const SLANT_SHAPE = [[0, "14%"], ["97%", 0], ["100%", "84%"], ["4%", "100%"]];
-const SLANT = PathBuilder.fill().add_polygon(SLANT_SHAPE).build();
-const SLANT_EDGE = PathBuilder.stroke(2).add_polygon(SLANT_SHAPE, true).build();
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -87,8 +84,38 @@ export function tone(t, status) {
   return t[status] ?? t.unknown;
 }
 
+// The active space's slabs are their own views, so a frame rebuilds only them.
+const MORPH_PERIOD = 2400;
+const pull = (now, i) => (1 - Math.cos((now / MORPH_PERIOD) * 2 * Math.PI + i * 1.7)) / 2;
+const morphed = (now) => [
+  [`${2 * pull(now, 0)}%`, `${14 + 8 * pull(now, 1)}%`],
+  [`${97 - 2 * pull(now, 2)}%`, `${8 * pull(now, 3)}%`],
+  [`${100 - 2 * pull(now, 4)}%`, `${84 - 8 * pull(now, 5)}%`],
+  [`${4 + 2 * pull(now, 6)}%`, `${100 - 8 * pull(now, 7)}%`],
+];
+
+class Morph extends View {
+  init(props, cx) {
+    this.fill = props.fill;
+    this.edge = props.edge;
+    this.lag = props.lag;
+    cx.timer.every(33, (cx) => cx.notify());
+  }
+
+  render() {
+    const shape = morphed(Date.now() - this.lag);
+    return div()
+      .size_full()
+      .relative()
+      .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(shape).build(), this.fill).absolute().inset_0())
+      .when(Boolean(this.edge), (el) => el.child(globalThis.window.paint_path(PathBuilder.stroke(2).add_polygon(shape, true).build(), this.edge).absolute().inset_0()));
+  }
+}
+
 export default class Spaces extends View {
   init(_props, cx) {
+    this.morph = cx.new(Morph, { fill: "#000000", edge: "#ffffff", lag: 0 });
+    this.shadow = cx.new(Morph, { fill: "#e60012", edge: null, lag: MORPH_PERIOD / 2 });
     this.git = {}; // where() -> { name, branch, ahead, behind, repo, linked }, null: not a repo
     this.checked = {}; // where() -> when it was last looked at
     this.unsure = new Set(); // where()s git couldn't answer for (a machine away)
@@ -526,7 +553,7 @@ export default class Spaces extends View {
       .justify_center()
       .rounded(8)
       .when(on && !p5(), (el) => el.bg(t.selected))
-      .when(on && p5(), (el) => el.child(div().id(`shadow-${w.id}`).absolute().top(4).left(6).w_full().h_full().loop("top", { from: 1, to: 8, period: 1500 }).child(globalThis.window.paint_path(SLANT, "#e60012").absolute().inset_0())).child(globalThis.window.paint_path(SLANT, "#000000").absolute().inset_0()).child(globalThis.window.paint_path(SLANT_EDGE, "#ffffff").absolute().inset_0()))
+      .when(on && p5(), (el) => el.child(div().absolute().top(4).left(6).w_full().h_full().child(this.shadow)).child(div().absolute().inset_0().child(this.morph)))
       .when(!on, (el) => el.hover((s) => s.bg(t.hover)))
       .when(
         this.pressed !== null && this.over === i && this.pressed !== i,

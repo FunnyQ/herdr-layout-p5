@@ -4,10 +4,6 @@ import { spaces, panes, run, openOverlay, theme, window as appWindow, shared, la
 
 const STRIPES_FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
 const stripes = () => globalThis.window.paint_path(STRIPES_FULL, Background.pattern_slash("#00000040", 3, 14)).absolute().inset_0();
-const ACTIVE_SHAPE = [[0, "16%"], ["97%", 0], ["100%", "82%"], ["4%", "100%"]];
-const ACTIVE = PathBuilder.fill().add_polygon(ACTIVE_SHAPE).build();
-const ACTIVE_EDGE = PathBuilder.stroke(2).add_polygon(ACTIVE_SHAPE, true).build();
-const shape = (path, color) => globalThis.window.paint_path(path, color).absolute().inset_0();
 const SLANT = PathBuilder.fill().add_polygon([["8%", 0], ["100%", 0], ["92%", "100%"], [0, "100%"]]).build();
 const slant = (color) => globalThis.window.paint_path(SLANT, color).absolute().inset_0();
 
@@ -20,8 +16,38 @@ function find(node, id) {
   return null;
 }
 
+// The active tab's slabs are their own views, so a frame rebuilds only them.
+const MORPH_PERIOD = 2400;
+const pull = (now, i) => (1 - Math.cos((now / MORPH_PERIOD) * 2 * Math.PI + i * 1.7)) / 2;
+const morphed = (now) => [
+  [`${4 * pull(now, 0)}%`, `${16 + 12 * pull(now, 1)}%`],
+  [`${97 - 4 * pull(now, 2)}%`, `${12 * pull(now, 3)}%`],
+  [`${100 - 4 * pull(now, 4)}%`, `${82 - 12 * pull(now, 5)}%`],
+  [`${4 + 4 * pull(now, 6)}%`, `${100 - 12 * pull(now, 7)}%`],
+];
+
+class Morph extends View {
+  init(props, cx) {
+    this.fill = props.fill;
+    this.edge = props.edge;
+    this.lag = props.lag;
+    cx.timer.every(33, (cx) => cx.notify());
+  }
+
+  render() {
+    const shape = morphed(Date.now() - this.lag);
+    return div()
+      .size_full()
+      .relative()
+      .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(shape).build(), this.fill).absolute().inset_0())
+      .when(Boolean(this.edge), (el) => el.child(globalThis.window.paint_path(PathBuilder.stroke(2).add_polygon(shape, true).build(), this.edge).absolute().inset_0()));
+  }
+}
+
 export default class Tabs extends View {
-  init() {
+  init(_props, cx) {
+    this.morph = cx.new(Morph, { fill: "#000000", edge: "#ffffff", lag: 0 });
+    this.shadow = cx.new(Morph, { fill: "#e60012", edge: null, lag: MORPH_PERIOD / 2 });
     this.pressed = null;
     this.panels = JSON.parse(localStorage.getItem("panels") ?? "{}");
   }
@@ -67,9 +93,8 @@ export default class Tabs extends View {
       return h_flex().id(`tab-${c.id}`).relative().h(30).px(18).gap(7).items_center().flex_none().text_size(13).font_weight(800).italic()
         .text_color(c.active ? "#ffffff" : "#ffb8bd")
         .when(c.active, el => el.h(32).px(20)
-          .child(div().id(`shadow-${c.id}`).absolute().top(4).left(5).w_full().h_full().loop("left", { from: 2, to: 9, period: 1500 }).child(shape(ACTIVE, "#e60012")))
-          .child(shape(ACTIVE, "#000000"))
-          .child(shape(ACTIVE_EDGE, "#ffffff")))
+          .child(div().absolute().top(4).left(5).w_full().h_full().child(this.shadow))
+          .child(div().absolute().inset_0().child(this.morph)))
         .when(!c.active, el => el.child(slant("#7a0009")))
         .hover(s => s.text_color("#ffffff"))
         .on_mouse_down("left", (e, cx) => { cx.stop_propagation(); this.pressed = i; if (e.click_count === 2) run("tab.rename", { id: c.id }); })
