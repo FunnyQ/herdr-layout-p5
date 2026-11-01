@@ -23,7 +23,7 @@ import {
   props,
 } from "herdr";
 
-const P5_COLORS = { chrome: "#b3000e", foreground: "#ffffff", muted: "#ffd6d9", dim: "#ffb8bd", hover: "#00000033", selected: "#000000", raised: "#00000055", border: "#000000", working: "#ffd400", done: "#ffffff", blocked: "#000000" };
+const P5_COLORS = { chrome: "#b3000e", foreground: "#ffffff", muted: "#ffd6d9", dim: "#ffb8bd", hover: "#00000033", selected: "#000000", raised: "#00000055", border: "#000000", working: "#ffd400", done: "#ffffff", blocked: "#ffd400" };
 const FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
 const stripes = () => globalThis.window.paint_path(FULL, Background.pattern_slash("#00000040", 3, 14)).absolute().inset_0();
 const TILT = [[0, "14%"], ["100%", 0], ["95%", "100%"], ["2%", "86%"]];
@@ -591,7 +591,7 @@ export default class Spaces extends View {
                 .size(12)
                 .flex_none()
                 .text_color(t.working)
-                .spin(900),
+                .spin(1800),
             ),
           )
           .when(Boolean(waiting), (el) =>
@@ -605,7 +605,16 @@ export default class Spaces extends View {
                 .when(waitingCount > 1, (el) => el.child(String(waitingCount)))
                 .child(
                   waiting === "blocked"
-                    ? div().font_bold().child("!")
+                    ? div()
+                        .size(14)
+                        .rounded(4)
+                        .bg(t.blocked + "26")
+                        .text_size(10.5)
+                        .font_bold()
+                        .flex()
+                        .items_center()
+                        .justify_center()
+                        .child("!")
                     : div().size(7).rounded(4).bg(tone(t, "done")),
                 ),
             ),
