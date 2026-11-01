@@ -101,7 +101,6 @@ const CARD_SHAPE = [
   ["3%", "100%"],
 ];
 const CARD = PathBuilder.fill().add_polygon(CARD_SHAPE).build();
-const CARD_EDGE = PathBuilder.stroke(2).add_polygon(CARD_SHAPE, true).build();
 const SLANT = PathBuilder.fill()
   .add_polygon([
     [0, "14%"],
@@ -191,6 +190,57 @@ function icon(p, size, color) {
     : image(p.icon).w(size).h(size).flex_none();
 }
 
+const PORTRAITS = new Set(["claude", "codex", "opencode"]);
+const portrait = (p, size) =>
+  PORTRAITS.has(p?.key)
+    ? image(`mods/p5-agents/portraits/${p.key}.png`).w(size).h(size).flex_none()
+    : icon(p, size, "#ffffff");
+
+// The selected card's slabs: each corner drifts up to about 5px inward, out of
+// step with the others. Their own views, so a frame rebuilds only them.
+const MORPH_PERIOD = 2400;
+const pull = (now, i) =>
+  (1 - Math.cos((now / MORPH_PERIOD) * 2 * Math.PI + i * 1.7)) / 2;
+const morphed = (now) => [
+  [`${2 * pull(now, 0)}%`, 8 + 5 * pull(now, 1)],
+  [`${96 - 2 * pull(now, 2)}%`, 5 * pull(now, 3)],
+  [`${100 - 2 * pull(now, 4)}%`, 74 - 5 * pull(now, 5)],
+  [`${3 + 2 * pull(now, 6)}%`, 84 - 5 * pull(now, 7)],
+];
+
+class Morph extends View {
+  init(props, cx) {
+    this.fill = props.fill;
+    this.edge = props.edge;
+    this.lag = props.lag;
+    cx.timer.every(33, (cx) => cx.notify());
+  }
+
+  render() {
+    const shape = morphed(Date.now() - this.lag);
+    return div()
+      .size_full()
+      .relative()
+      .child(
+        globalThis.window
+          .paint_path(PathBuilder.fill().add_polygon(shape).build(), this.fill)
+          .absolute()
+          .inset_0(),
+      )
+      .when(Boolean(this.edge), (el) =>
+        el.child(
+          globalThis.window
+            .paint_path(
+              PathBuilder.stroke(2).add_polygon(shape, true).build(),
+              this.edge,
+            )
+            .absolute()
+            .inset_0(),
+        ),
+      );
+  }
+}
+
 export default class Agents extends View {
   init(_props, cx) {
     if (props()?.sortMenu) return;
@@ -198,6 +248,12 @@ export default class Agents extends View {
     // Each agent's last state and when it changed (ms), kept across restarts.
     this.changed = JSON.parse(localStorage.getItem("changed") ?? "{}");
     this.pins = JSON.parse(localStorage.getItem("pins") ?? "[]");
+    this.morph = cx.new(Morph, { fill: "#000000", edge: "#ffffff", lag: 0 });
+    this.shadow = cx.new(Morph, {
+      fill: "#e60012",
+      edge: null,
+      lag: MORPH_PERIOD / 2,
+    });
     cx.timer.every(30000, (cx) => cx.notify());
     startSp(cx);
   }
@@ -372,7 +428,7 @@ export default class Agents extends View {
                 .absolute()
                 .inset_0(),
             )
-            .when(Boolean(pic), (el) => el.child(pic))
+            .child(portrait(k.program, 18) ?? div())
             .child(
               div()
                 .flex_1()
@@ -672,7 +728,14 @@ export default class Agents extends View {
                 ? Math.max(0, CACHE_TTL - (now - when))
                 : 0;
         const energy = cacheLeft / CACHE_TTL;
-        const hp = String(Math.ceil(cacheLeft / 60000));
+        const hp = Math.ceil(cacheLeft / 60000);
+        const stat = (n, color) =>
+          h_flex()
+            .text_size(20)
+            .font_weight(900)
+            .text_color(color)
+            .child(div().opacity(0.5).child("0".repeat(Math.max(0, 3 - String(n).length))))
+            .child(div().child(String(n)));
         const bar = (fill, color) =>
           div()
             .h(4)
@@ -688,8 +751,8 @@ export default class Agents extends View {
           .id(`ag-${a.address}`)
           .relative()
           .mx(6)
-          .my(4)
-          .h(68)
+          .my(8)
+          .h(84)
           .flex_none()
           .pl(18)
           .pr(24)
@@ -705,31 +768,21 @@ export default class Agents extends View {
           .when(a.focused, (el) =>
             el.child(
               div()
-                .id(`shadow-${a.address}`)
                 .absolute()
                 .top(4)
                 .left(6)
                 .w_full()
                 .h_full()
-                .loop("top", { from: 1, to: 8, period: 1500 })
-                .child(
-                  globalThis.window
-                    .paint_path(CARD, "#e60012")
-                    .absolute()
-                    .inset_0(),
-                ),
+                .child(this.shadow),
             ),
           )
-          .child(
-            globalThis.window
-              .paint_path(CARD, a.focused ? "#000000" : "#8a000b")
-              .absolute()
-              .inset_0(),
-          )
           .when(a.focused, (el) =>
+            el.child(div().absolute().inset_0().child(this.morph)),
+          )
+          .when(!a.focused, (el) =>
             el.child(
               globalThis.window
-                .paint_path(CARD_EDGE, "#ffffff")
+                .paint_path(CARD, "#8a000b")
                 .absolute()
                 .inset_0(),
             ),
@@ -747,7 +800,18 @@ export default class Agents extends View {
                   cx.notify();
                 }),
               )
-              .child(icon(a.program, 30, "#ffffff") ?? div().size(30)),
+              .when(PORTRAITS.has(a.program?.key), (el) =>
+                el
+                  .relative()
+                  .w(62)
+                  .h(84)
+                  .child(
+                    portrait(a.program, 120).absolute().top(-20).left(-50),
+                  ),
+              )
+              .when(!PORTRAITS.has(a.program?.key), (el) =>
+                el.child(portrait(a.program, 30) ?? div().size(30)),
+              ),
           )
           .child(
             v_flex()
@@ -781,24 +845,17 @@ export default class Agents extends View {
                   .items_end()
                   .line_height(1)
                   .child(div().text_size(9).text_color("#5ef2ff").child("HP"))
+                  .child(stat(hp, cacheLeft > 0 ? "#5ef2ff" : "#ffd400"))
                   .child(
-                    div()
-                      .text_size(17)
-                      .text_color(cacheLeft > 0 ? "#5ef2ff" : "#ffd400")
-                      .child(hp),
+                    div().ml(4).text_size(9).text_color("#ff5fb4").child("SP"),
                   )
-                  .child(div().text_size(14).text_color("#ffffff").child("/"))
-                  .child(div().text_size(9).text_color("#ff5fb4").child("SP"))
-                  .child(
-                    div().text_size(17).text_color("#ff5fb4").child(String(sp)),
-                  ),
+                  .child(stat(sp, "#ff5fb4")),
               )
               .child(
                 v_flex()
-                  .gap(2)
-                  .pr(6)
-                  .child(bar(energy, "#5ef2ff"))
-                  .child(bar(sp / 100, "#ff5fb4")),
+                  .gap(3)
+                  .child(div().pr(14).child(bar(energy, "#5ef2ff")))
+                  .child(div().pl(10).pr(4).child(bar(sp / 100, "#ff5fb4"))),
               ),
           )
           .when(this.hovered === a.address, (el) => el.child(pin))
@@ -915,7 +972,14 @@ export default class Agents extends View {
     // Groups in list order: spaces (grouped) or priority sections. Agents of a
     // space are next to each other in agents(), so neighbours make a group.
     const groups = selected
-      ? [{ id: "selected", label: "Selected", status: null, members: [selected] }]
+      ? [
+          {
+            id: "selected",
+            label: "Selected",
+            status: null,
+            members: [selected],
+          },
+        ]
       : [];
     if (pinned.some(notSelected))
       groups.push({
@@ -960,6 +1024,7 @@ export default class Agents extends View {
           open ? this.folded.add(g.id) : this.folded.delete(g.id);
           cx.notify();
         })
+        .child(div().flex_1())
         .child(
           div()
             .truncate()
@@ -969,7 +1034,6 @@ export default class Agents extends View {
         .when(g.id !== "selected" && (byPriority || !open), (el) =>
           el.child(div().text_color(t.dim).child(String(g.members.length))),
         )
-        .child(div().flex_1())
         .when(!open, (el) =>
           el
             .when(!byPriority && top && top !== "idle", (el) =>
@@ -986,7 +1050,7 @@ export default class Agents extends View {
     // The block is as tall as the inbox, capped, so the spaces list keeps the rest.
     if (!collapsed) {
       const card = (a) =>
-        76 +
+        100 +
         (this.folded.has(a.address)
           ? 0
           : this.tree(all, a.address).length * 26);
