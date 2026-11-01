@@ -24,7 +24,7 @@ import { startSp, sp as spLeft } from "./sp.js";
 
 const p5 = () => true;
 const P5_COLORS = {
-  chrome: "#b3000ecc",
+  chrome: "#93000be6",
   foreground: "#ffffff",
   muted: "#ffd6d9",
   dim: "#ffb8bd",
@@ -47,7 +47,7 @@ const FULL = PathBuilder.fill()
   .build();
 const stripes = () =>
   globalThis.window
-    .paint_path(FULL, Background.pattern_slash("#00000040", 3, 14))
+    .paint_path(FULL, Background.pattern_slash("#00000020", 3, 14))
     .absolute()
     .inset_0();
 // prompt cache lifetime after the last turn; 5 min on default Claude Code, 1 h on plans with the extended TTL
@@ -385,7 +385,7 @@ export default class Agents extends View {
             .items_center()
             .child(
               globalThis.window
-                .paint_path(SLANT, on ? "#000000" : "#8a000b")
+                .paint_path(SLANT, on ? "#000000" : "#4d0008")
                 .absolute()
                 .inset_0(),
             )
@@ -731,21 +731,39 @@ export default class Agents extends View {
               div()
                 .absolute()
                 .top(4)
-                .left(6)
-                .w_full()
+                .left(30)
+                .right(-6)
                 .h_full()
                 .child(this.shadow),
             ),
           )
           .when(a.focused, (el) =>
-            el.child(div().absolute().inset_0().child(this.morph)),
+            el.child(div().absolute().top(0).bottom(0).left(24).right(0).child(this.morph)),
           )
           .when(!a.focused, (el) =>
             el.child(
               globalThis.window
-                .paint_path(CARD, "#8a000b")
+                .paint_path(CARD, "#4d0008")
                 .absolute()
                 .inset_0(),
+            ),
+          )
+          .when(a.focused, (el) =>
+            el.child(
+              div()
+                .id(`selected-fold-${a.address}`)
+                .absolute()
+                .top(-16)
+                .right(18)
+                .w(95)
+                .h(38)
+                .child(image("mods/p5-agents/selected.png").size_full())
+                .tooltip("Collapse selected agent")
+                .on_click((_e, cx) => {
+                  cx.stop_propagation();
+                  this.folded.add("selected");
+                  cx.notify();
+                }),
             ),
           )
           .child(
@@ -962,6 +980,8 @@ export default class Agents extends View {
         });
     }
 
+    const showHeader = (g) => !p5() || g.id !== "selected" || this.folded.has(g.id);
+
     // A group's header; it folds the group. Folded, it says how many and the most urgent state.
     const header = (g) => {
       const open = !this.folded.has(g.id);
@@ -1018,7 +1038,7 @@ export default class Agents extends View {
       const body = groups.reduce(
         (h, g) =>
           h +
-          30 +
+          (showHeader(g) ? 30 : 0) +
           (this.folded.has(g.id)
             ? 0
             : g.members.reduce((m, a) => m + card(a), 0)),
@@ -1034,7 +1054,7 @@ export default class Agents extends View {
     const rows = collapsed
       ? list.flatMap(withKids)
       : groups.flatMap((g) => [
-          header(g),
+          ...(showHeader(g) ? [header(g)] : []),
           ...(this.folded.has(g.id) ? [] : g.members.flatMap(withKids)),
         ]);
 
@@ -1049,7 +1069,8 @@ export default class Agents extends View {
       .when(!collapsed, (el) =>
         el.child(
           h_flex()
-            .px(16)
+            .pl(16)
+            .pr(10)
             .h(58)
             .pt(4)
             .pb(4)
@@ -1068,9 +1089,14 @@ export default class Agents extends View {
             .child(
               div()
                 .id("ag-sort")
-                .text_size(11)
-                .text_color(t.dim)
-                .hover((s) => s.text_color(t.foreground))
+                .size(26)
+                .flex_none()
+                .flex()
+                .items_center()
+                .justify_center()
+                .rounded(5)
+                .text_color(t.foreground)
+                .hover((s) => s.bg(t.hover))
                 .on_click(() =>
                   openOverlay({
                     mod: "p5-agents",

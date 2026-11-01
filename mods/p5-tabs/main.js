@@ -3,7 +3,7 @@ import { h_flex } from "gpui-base";
 import { spaces, panes, run, openOverlay, theme, window as appWindow, shared, layout, settings } from "herdr";
 
 const STRIPES_FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
-const stripes = () => globalThis.window.paint_path(STRIPES_FULL, Background.pattern_slash("#00000040", 3, 14)).absolute().inset_0();
+const stripes = () => globalThis.window.paint_path(STRIPES_FULL, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
 const SLANT = PathBuilder.fill().add_polygon([["8%", 0], ["100%", 0], ["92%", "100%"], [0, "100%"]]).build();
 const slant = (color) => globalThis.window.paint_path(SLANT, color).absolute().inset_0();
 
@@ -43,13 +43,13 @@ class Morph extends View {
       .size_full()
       .relative()
       .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(shape).build(), this.fill).absolute().inset_0())
-      .when(Boolean(this.edge), (el) => el.child(globalThis.window.paint_path(PathBuilder.stroke(2).add_polygon(shape, true).build(), this.edge).absolute().inset_0()));
+      .when(Boolean(this.edge), (el) => el.child(globalThis.window.paint_path(PathBuilder.stroke(1.5).add_polygon(shape, true).build(), this.edge).absolute().inset_0()));
   }
 }
 
 export default class Tabs extends View {
   init(_props, cx) {
-    this.morph = cx.new(Morph, { fill: "#000000", edge: "#ffffff", lag: 0 });
+    this.morph = cx.new(Morph, { fill: "#000000", edge: "#ff6975", lag: 0 });
     this.shadow = cx.new(Morph, { fill: "#e60012", edge: null, lag: MORPH_PERIOD / 2 });
     this.pressed = null;
     this.panels = JSON.parse(localStorage.getItem("panels") ?? "{}");
@@ -84,21 +84,21 @@ export default class Tabs extends View {
   }
 
   render() {
-    const t = { ...theme(), chrome: "#b3000ecc", raised: "#000000", muted: "#ffffff", foreground: "#ffffff", dim: "#ffb8bd", hover: "#00000033", selected: "#000000" };
+    const t = { ...theme(), chrome: "#93000be6", raised: "#000000", muted: "#ffffff", foreground: "#ffffff", dim: "#ffb8bd", hover: "#00000033", selected: "#000000" };
     const space = spaces().find(p => p.active);
     const shown = space?.tabs ?? [];
     const stop = (_e, cx) => cx.stop_propagation();
-    const button = (id, label, action) => div().id(id).size(26).flex_none().flex().items_center().justify_center().rounded(6).text_color(t.dim).hover(s => s.bg(t.hover).text_color(t.foreground))
+    const button = (id, label, action) => div().id(id).size(26).flex_none().flex().items_center().justify_center().rounded(5).text_color(t.muted).hover(s => s.bg(t.hover).text_color(t.foreground))
       .on_mouse_down("left", stop).on_click(action).child(label);
     const item = (c, i) => {
       const program = panes().find(p => p.tab === c.id && p.program?.agent)?.program ?? panes().find(p => p.tab === c.id)?.program;
       const name = /^tb\d+$/.test(c.name) ? program?.name ?? "Terminal" : c.name;
-      return h_flex().id(`tab-${c.id}`).relative().h(30).px(18).gap(7).items_center().flex_none().text_size(13).font_weight(800).italic()
+      return h_flex().id(`tab-${c.id}`).relative().h(30).px(16).gap(6).items_center().flex_none().text_size(12.5).font_weight(700).italic()
         .text_color(c.active ? "#ffffff" : "#ffb8bd")
-        .when(c.active, el => el.h(32).px(20)
-          .child(div().absolute().top(4).left(5).w_full().h_full().child(this.shadow))
+        .when(c.active, el => el.h(38).py(4)
+          .child(div().absolute().top(3).left(3).w_full().h_full().child(this.shadow))
           .child(div().absolute().inset_0().child(this.morph)))
-        .when(!c.active, el => el.child(slant("#7a0009")))
+        .when(!c.active, el => el.child(slant("#00000033")))
         .hover(s => s.text_color("#ffffff"))
         .on_mouse_down("left", (e, cx) => { cx.stop_propagation(); this.pressed = i; if (e.click_count === 2) run("tab.rename", { id: c.id }); })
         .on_mouse_up("left", () => {
@@ -123,7 +123,7 @@ export default class Tabs extends View {
     this.syncPanel(space, panel, body, enabled);
     const panelButton = (id, label, icon) => {
       const on = panel && !panel.hidden && body?.active === id;
-      return h_flex().id(`panel-${id}`).h(26).px(8).gap(5).flex_none().items_center().rounded(6)
+      return h_flex().id(`panel-${id}`).h(26).px(8).gap(6).flex_none().items_center().rounded(5)
         .text_size(12).when(on, s => s.bg(t.selected)).text_color(on ? t.foreground : t.muted)
         .hover(s => s.bg(t.hover)).on_mouse_down("left", stop)
         .on_click(() => {
@@ -134,8 +134,8 @@ export default class Tabs extends View {
     return h_flex().size_full().min_w(0).px(10).pl(lightsPadding).gap(3).items_center().bg(t.chrome).relative().child(stripes())
       .on_mouse_up("left", () => { this.pressed = null; })
       .on_scroll_wheel(e => { if (Math.abs(e.delta.y) >= 1) run(e.delta.y > 0 ? "tab.prev" : "tab.next"); })
-      .child(h_flex().id("tab-scroll").flex_1().min_w(0).h_full().items_center().gap(10).overflow_x_scrollbar().children(shown.map(item)))
-      .child(button("tab-new", "+", () => openOverlay({ mod: "new-menu", kind: "popup", width: 250, height: 512 })))
+      .child(h_flex().id("tab-scroll").flex_1().min_w(0).h_full().items_center().gap(8).overflow_x_scrollbar().children(shown.map(item)))
+      .child(button("tab-new", svg("mods/workspace-chrome/plus.svg").size(14), () => openOverlay({ mod: "new-menu", kind: "popup", width: 250, height: 512 })))
       .when(enabled.includes("files"), el => el.child(panelButton("files", "Files", "mods/files/file.svg")))
       .when(enabled.includes("changes"), el => el.child(panelButton("changes", "Changes", "mods/changes/changes.svg")))
       .when(w?.buttons, el => el.child(button("minimize", w.platform === "windows" ? svg("mods/tabs/win-min.svg").size(16) : "−", () => run("window.minimize")))

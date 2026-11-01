@@ -23,9 +23,9 @@ import {
   props,
 } from "herdr";
 
-const P5_COLORS = { chrome: "#b3000ecc", foreground: "#ffffff", muted: "#ffd6d9", dim: "#ffb8bd", hover: "#00000033", selected: "#000000", raised: "#00000055", border: "#000000", working: "#ffd400", done: "#ffffff", blocked: "#ffd400" };
+const P5_COLORS = { chrome: "#93000be6", foreground: "#ffffff", muted: "#ffd6d9", dim: "#ffb8bd", hover: "#00000033", selected: "#000000", raised: "#00000055", border: "#000000", working: "#ffd400", done: "#ffffff", blocked: "#ffd400" };
 const FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
-const stripes = () => globalThis.window.paint_path(FULL, Background.pattern_slash("#00000040", 3, 14)).absolute().inset_0();
+const stripes = () => globalThis.window.paint_path(FULL, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
 const p5 = () => true;
 
 function find(node, id) {
@@ -697,16 +697,21 @@ export default class Spaces extends View {
           .items_center()
           .justify_between()
           .text_size(p5() ? 15 : 11.5)
-          .text_color(p5() ? "#000000" : t.dim)
+          .text_color(p5() ? t.foreground : t.dim)
           .when(!collapsed, (el) => el.child(p5() ? image("mods/p5-spaces/title-horizontal.png").w(145).h(50).flex_none() : "Spaces"))
           .child(
             div()
               .id("space-new")
-              .p(4)
+              .size(26)
+              .flex_none()
+              .flex()
+              .items_center()
+              .justify_center()
               .rounded(5)
               .hover((s) => s.bg(t.hover).text_color(t.foreground))
               .on_click(() => run("space.new"))
-              .child("+"),
+              .tooltip("New space")
+              .child(svg("mods/workspace-chrome/plus.svg").size(14)),
           ),
       )
       .child(
