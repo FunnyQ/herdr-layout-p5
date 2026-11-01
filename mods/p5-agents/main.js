@@ -1067,7 +1067,7 @@ export default class Agents extends View {
         0,
       );
       // 53 title row + 28 bottom row, plus room for the selected card's red copy
-      const px = body ? Math.min(53 + 28 + body + 8, 420) : 56;
+      const px = body ? Math.min(53 + 28 + body + 8, 540) : 56;
       if (this.px !== px) {
         this.px = px;
         run("layout.resize", { id: "agents", px });
