@@ -6,36 +6,37 @@ A herdr-app layout in the style of Persona 5's menus. Every bar is deep red with
 
 ## What you see
 
-Red is `#b3000e` at 80% opacity (`#b3000ecc`) everywhere, so the wallpaper shows through every bar. Stripes are `#00000040`, 3px wide every 14px, at 45°. "Selected style" means a black irregular quad (corners at different heights), a 2px white outline, and a `#e60012` copy of the quad offset about 5px right and 4px down. On the active space, the focused agent and the active tab, the black quad and its red copy morph: each corner drifts up to about 5px inward on a 2.4s cosine, out of step with the other corners, and the red copy runs half a period behind the black quad. "Unselected style" means a `#7a0009` slant with `#ffb8bd` text. Text is heavy italic caps throughout.
+Keep wallpaper visible in the chrome and gutters, with `#0d0d0d` terminal content at 75% opacity. Use darker red chrome and quieter stripes for each region as specified below. Stripes are 3px wide every 14px, at 45°. "Selected style" means a black irregular quad (corners at different heights), a 2px white outline, and a `#e60012` copy of the quad offset about 5px right and 4px down. On the active space, the focused agent and the active tab, the black quad and its red copy morph: each corner drifts up to about 5px inward on a 2.4s cosine, out of step with the other corners, and the red copy runs half a period behind the black quad. "Unselected style" means a `#7a0009` slant with `#ffb8bd` text. Text is heavy italic caps throughout.
 
 - **Window background** (behind every bar and pane): the wallpaper `mods/p5-chrome/wallpaper.jpg`, a 3840×2160 JPEG, fit `cover`. There are no dividers between regions, so the bars and the sidebar run edge to edge.
-- **Sidebar, left, 268px:**
+- **Sidebar, left, 268px:** use `#93000b` at 90% opacity (`#93000be6`) with quieter `#00000020` stripes, so the wallpaper stays behind the text.
   - **Brand row, 46px** (`p5-chrome`): the search and sidebar-toggle buttons, with no brand logo or app icon. Dragging it moves the window.
-  - **Section tags** (`SPACES`, `AGENTS`): transparent PNG assets with black backing and a white outer contour. Spaces and Agents use 50px-tall `title-horizontal.png` labels (Spaces: 145px wide; Agents: 150px wide) with large Japanese text (`空間`, `使者`) and smaller English captions (`Spaces`, `Agents`) to the right of the Japanese text, aligned at the bottom, in 58px title rows. The Herdr app icon is hidden.
+  - **Section tags** (`SPACES`, `AGENTS`): transparent PNG assets with black backing and a white outer contour. Spaces and Agents use 50px-tall `title-horizontal.png` labels (Spaces: 145px wide; Agents: 150px wide) with large Japanese text (`空間`, `使者`) and smaller English captions (`Spaces`, `Agents`) to the right of the Japanese text, aligned at the bottom, in 58px title rows. The Herdr app icon is hidden. The New space and agent-sort buttons use white 14px icons in matching 26px hit areas, with a 10px right inset.
   - **Spaces** (`p5-spaces`): each row has a colored avatar letter and the name in weight-800 italic caps. Under the name is the branch with ahead/behind counts in `#ffb8bd`.
     - Unselected rows are 46px tall (32px without a branch line) with 12px side padding. Every second row is indented 12px for a zig-zag.
     - The active space is a selected-style quad, 66px tall (48px without a branch line), padded 24px left and 20px right, with a `#bdbdbd` branch line. Its black slab and red copy morph like the focused agent's: each corner drifts inward 2% across and 8% up or down (about 5px), the red copy half a period behind.
     - When any agent in the space is working, a 12px `#ffd400` spinner sits right of the name, left of the blocked `!` or done dot.
-  - **Agents** (`p5-agents`): the block grows with its content, from 86px up to 540px, so one card never shows a scrollbar. The focused agent always leads the list in its own `Selected` section, above `Pinned`, and names its space. The default Priority sort then lists sections `Needs you`, `Done`, then `Working` (idle agents are hidden); Grouped by space lists every other agent under its space name. Section labels sit at the right edge, clear of the portraits. Only the display moves: the agent order for next/previous keeps the focused agent in place, or next would bounce between two agents. Each agent is an 84px black irregular card, with 20px above and below:
+  - **Agents** (`p5-agents`): the block grows with its content, from 86px up to 540px, so one card never shows a scrollbar. The focused agent always leads the list above `Pinned` and names its space. Its `SELECTED` label uses the transparent `p5-agents/selected.png` at 95×38px, attached to the card at the top right, replacing the separate 30px section header. Click the tag to collapse the selected group; its folded header reappears so it can be expanded. The default Priority sort then lists sections `Needs you`, `Done`, then `Working` (idle agents are hidden); Grouped by space lists every other agent under its space name. Section labels sit at the right edge, clear of the portraits. Only the display moves: the agent order for next/previous keeps the focused agent in place, or next would bounce between two agents. Each agent is an 84px irregular card, black when focused and dark burgundy (`#4d0008`) otherwise, with 20px above and below:
     - **Left:** a 120px party portrait from `p5-agents/portraits/<program.key>.png` (`claude`, `codex`, `opencode`), in a 62px slot, offset 50px left and 20px up so it breaks over both left corners of the card. Other programs show their icon at 30px inside the card. The portraits are 256px, sharp on 2x screens.
     - **Middle:** the name, then a stat line of 20px weight-900 numbers padded to three digits (`HP 048 SP 015`), the padding zeros at 50% opacity, then two 4px bars, the pink one shifted 10px right of the cyan one:
       - `HP` in `#5ef2ff`: minutes left before the prompt cache goes cold. It is full while the agent is working and counts down from its last state change. It shows a `#ffd400` `0` once the time runs out, or when the agent has never run a turn.
       - `SP` in `#ff5fb4`: 100 minus the turns taken, floored at 0. With the context-window SP, it is the percent of the context window left instead.
       - The cyan bar and the pink bar track HP and SP.
     - **Right:** the time since the state change, then the status icon.
-    - **Focused agent:** the card gets the white outline and the red offset copy. Its black slab and its red copy both morph instead of bobbing: each corner drifts up to about 5px inward (2% across, 5px up or down) on a 2.4s cosine, each out of step with the others, and the outline follows the black slab. The red copy keeps its 4px down, 6px right offset and runs half a period (1.2s) behind the black slab, so each of its corners pushes out while the black one pulls in.
-    - **Sub-agents:** 26px rows under their parent, joined by 2px black tree lines. Each is a 22px `#8a000b` slant with an 18px portrait or icon, the name in 11px weight-800 italic caps in `#ffb8bd`, and the status icon. The peeked one is a black slant with white text.
+    - **Focused agent:** inset the black slab, white outline and red copy 24px from the left while keeping the right edge fixed, so the portrait covers the left edge. Keep portrait and content positions unchanged. The card gets the white outline and the red offset copy. Its black slab and its red copy both morph instead of bobbing: each corner drifts up to about 5px inward (2% across, 5px up or down) on a 2.4s cosine, each out of step with the others, and the outline follows the black slab. The red copy keeps its 4px down, 6px right offset and runs half a period (1.2s) behind the black slab, so each of its corners pushes out while the black one pulls in.
+    - **Sub-agents:** 26px rows under their parent, joined by 2px black tree lines. Each is a 22px `#4d0008` slant with an 18px portrait or icon, the name in 11px weight-800 italic caps in `#ffb8bd`, and the status icon. The peeked one is a black slant with white text.
   - **Footer, 92px** (`p5-chrome` with `footer: true`): a black block whose top edge slopes up to the right, holding `SETTINGS` and `ADD MACHINE`.
-- **Tab bar, 42px** (`p5-tabs`): red with stripes. Tabs are spaced 10px apart and use 13px weight-800 italic caps. The active tab is selected style (32px tall, 20px side padding); the other tabs are unselected style. Files and Changes toggles sit on the right.
-- **Panes** (`main`): `#0d0d0d66` (40% opacity) over terminals at 0.6 opacity, 10px gap, no border. Each pane has a 42px header (`p5-pane`) that paints only a slab whose top runs from 38% height on the left up to the top right: red with stripes, overlaid with `#0d0d0d66`. Above the slant the header is transparent, so the wallpaper shows in the wedge. The slab merges with the terminal below, so the pane looks cut on a slant.
-  - The focused pane has a 4px white line along the slant, a white irregular name tag with black text, and a red offset copy behind the tag. The white tag is drawn 3px past its 24px row above and below and 6px past it on each side, so it reaches the pane's left edge with no red gap.
-  - Other panes have an unselected-style name tag.
-  - The folder follows in `#ffb8bd`.
-- **Status bar, 34px** (`p5-status`): red with stripes.
-  - The machine and branch are white irregular chips with black text, tilted in opposite directions.
-  - `AGENTS N` is selected style: a small label with the count at 18px in `#5ef2ff`, plus `/N` in `#ff5fb4` when N agents are blocked.
-  - When any agent is blocked, a `N NEEDS YOU!` chip appears in `#ffd400` with black text.
-  - On the right is a key chip `ON` or `OFF` followed by `ANIMATION`, then a white key chip `⌘ ⇧ P` followed by `COMMANDS`. Clicking `ANIMATION` flips the shared `p5.motion` flag. Its chip is white with black text while on, and `#7a0009` with `#ffb8bd` text while off.
+- **Tab bar, 46px** (`p5-tabs`): `#93000be6` with `#00000020` stripes, matching the sidebar, aligned with the sidebar's top row. Tabs are 30px tall, spaced 8px apart, with 16px side padding and 12.5px weight-700 italic caps. The active tab is 38px tall with 4px vertical padding and has a black morphing slab with a 1.5px rose outline (`#ff6975`) and a red copy offset 3px. Other tabs use a translucent black slant. Files, Changes and window controls use 26px heights and 14px icons.
+- **Panes** (`main`): `#0d0d0d` content at terminal opacity 0.75 over a transparent pane frame, 12px pane gaps, no border. Work-area gutters are 10px vertically and 12px horizontally; terminal padding is 10px vertically and 12px horizontally. Each pane has a 36px header (`p5-pane`) whose top slopes from 20% height on the left to the top right.
+  - The focused pane uses a `#2a0b10cc` header (80% opacity), a 2px white slanted focus line with a 3px red offset, and a white irregular name tag with black text.
+  - Other panes use a `#1b1115cc` header (80% opacity) and a translucent black name tag with muted text. Header stripes use `#00000018`.
+  - Display the project folder name at its root, relative paths inside it, and home-shortened paths elsewhere. Keep the home-shortened full path in the tooltip.
+  - Hover to show 26px split, zoom and close controls, matching the other toolbar buttons.
+- **Status bar, 30px** (`p5-status`): `#93000be6` with `#00000020` stripes, matching the sidebar, and 11.5px weight-700 text.
+  - Machine and branch use muted text on translucent black slanted chips.
+  - `AGENTS N` uses a black chip with a cyan count at 15px, plus a pink `/N` when agents are blocked.
+  - Keep the `N NEEDS YOU!` chip yellow when an agent needs attention.
+  - Animation and command-palette controls use translucent key chips. `ANIMATION` still toggles the shared `p5.motion` flag.
 - **Theme** `themes/persona5.json`: terminal background `#0d0d0d`, foreground `#f2f2f2`, selection `#6b000a`, cursor `#ff1a2d`, and a red-leaning ANSI palette. `colors.border` is `#000000` to hide herdr's overlay frame.
 - **Overlays:** the `herdr-q-saddle` overlays (`q-saddle-project`, `q-saddle-ssh`, `q-saddle-tab`) restyle themselves in P5 when `shared('layout') === 'persona5'`.
 
@@ -49,17 +50,20 @@ Red is `#b3000e` at 80% opacity (`#b3000ecc`) everywhere, so the wallpaper shows
   - The block resizes itself to fit the cards.
 - Tabs: click to select, double-click to rename, drag to reorder, and scroll the wheel to switch. The × on the active tab closes it.
 - Pane headers: hovering shows the split, zoom and close buttons, and clicking focuses the pane.
+- Quick terminal: `` ctrl-` `` or the sidebar's monitor button toggles a centered popup terminal per space. Focus its terminal automatically. Start its first shell in the space's folder. Hide it on a space change, an outside click, the × button or another toggle; keep its process and current directory. Reopen the same shell, or create another after it exits.
 - `ctrl-shift-l` cycles layouts, so the person's own layout stays one key away.
 
 ## Built from
 
-- `layouts/persona5.json`: a root row of `sidebar` and `work`. The root sets `theme: persona5`, `background: {image: "mods/p5-chrome/wallpaper.jpg", fit: "cover"}`, `terminal_opacity: 0.6`, `titlebar: none` and `traffic_lights: [12, 16]`, and has no `divider`.
+- `layouts/persona5.json`: a root row of `sidebar` and `work`. The root sets `theme: persona5`, `background: {image: "mods/p5-chrome/wallpaper.jpg", fit: "cover"}`, `terminal_opacity: 0.75`, `titlebar: none` and `traffic_lights: [12, 16]`, and has no `divider`.
   - `sidebar` is a column of `brand`, `sidebar-lists` (holding `spaces` and `agents`) and `sidebar-footer`.
   - `work` is a column of `tabs`, a `work-body` row, and `status`. `work-body` holds `main` and the hidden `panel` stack of `files` and `changes`.
-  - The pane frame in `main` is `{gap: 10, radius: 0, background: "#0d0d0d66", border/focus width 0, header {mod: p5-pane, height: 42}, lone: true}`.
+  - The pane frame in `main` is `{gap: 12, radius: 0, background: "#00000000", border/focus width 0, header {mod: p5-pane, height: 36}, lone: true}`.
 - The mods:
   - `p5-tabs`, `p5-pane`, `p5-chrome` and `p5-status` are clones of Herdr 0.1.9's `tabs`, `pane`, `workspace-chrome` and `workspace-status`.
   - `p5-spaces` and `p5-agents` are reworked spaces and agents lists.
+  - `p5-chrome/quick-terminal.js` owns shell discovery, creation and toggling. Store addresses in shared state by machine and space id. Label new shells `p5.quick-space`, launch with `--no-parent` to survive the launching agent, and omit pane labels so the shell stays out of the tab tree.
+  - `p5-quick-terminal` draws an irregular black quadrilateral with a 3px white outline and a red outline offset 4px right and down. Keep the terminal rectangular and inset its content inside the outline. Draw each part of the same full-size path through the top, side strips and bottom strip because layout blocks clip their mods; do not clip terminal text into a polygon. Paint the frame black at 80% opacity and leave the terminal block background unset so panes underneath remain visible. Replace the title bar with the transparent "端末 Terminal" PNG (`title.png`), displayed 196px wide at its original 3:1 ratio at the top left, and keep the × button at the top right. Reserve at least 76px above the terminal for the image. Use a 4:3 layout dialog at 65% window height, capped at 78% window width. Account for zoom when sizing it from `window.viewport_size()` on each open. Let Herdr center it and draw its built-in 35% black backdrop; keep outside-click dismissal enabled. Herdr 0.1.10's `pane.focus {terminal}` cannot focus a terminal in a window overlay, so use a dialog for automatic terminal focus and the backdrop; it does not support dragging or background blur.
 - Drawing:
   - Every shape is a `PathBuilder.fill().add_polygon(...)` with percentage coordinates, drawn by `window.paint_path(path, color)` as an `.absolute().inset_0()` child behind the text.
   - Outlines use `PathBuilder.stroke(2).add_polygon(shape, true)`. The slanted pane top uses `PathBuilder.stroke(4).move_to(...).line_to(...)`.
@@ -89,7 +93,7 @@ Red is `#b3000e` at 80% opacity (`#b3000ecc`) everywhere, so the wallpaper shows
 - The `Morph` timers for the active space, focused agent and active tab re-render at about 30fps for as long as the mods are loaded, even with nothing selected on screen. With animation off, the timers still wake every 33ms but skip the render.
 - `.loop()` animates only `left`, `top`, `width`, `height` and `opacity`, never a path's points. A morphing shape needs its own nested view that rebuilds the path on a timer; keep it out of the parent's render so a frame rebuilds only that view.
 - `colors.border: "#000000"` also blacks out every other use of `t.border`: the separators in `menu` and `new-menu` vanish against the `#000000` popover, and the frames and dividers in `files` and `changes` nearly vanish against `#0d0d0d`.
-- The Agents block sizes itself with `layout.resize`. Count its 58px title row, 28px bottom row, 30px per section header, 124px per card, 26px per unfolded sub-agent and 8px for the red copy, or one card shows a scrollbar.
+- The Agents block sizes itself with `layout.resize`. Count its 58px title row, 28px bottom row, 30px per visible section header (none for the expanded selected group), 124px per card, 26px per unfolded sub-agent and 8px for the red copy, or one card shows a scrollbar.
 - `line_height` given a bare number is a multiplier (`1.1`), not pixels.
 - Herdr doesn't notice edits behind a symlinked mod or layout, and a symlinked mod can't load SVGs from its own folder. Switch layouts (`ctrl-shift-l`) to reload.
 - When `layouts/persona5.svg` is a symlink, the layout picker shows an empty preview card. Copy the file into `~/.config/herdr-app/layouts/` instead of linking it.
@@ -125,20 +129,23 @@ Follow these steps to install the layout for someone. Run them from a clone of t
    cp ~/.config/herdr-app/mods/p5-agents/sp-turns.js ~/.config/herdr-app/mods/p5-agents/sp.js
    ```
 
-4. Check each mod. Without `sp.js`, `p5-agents` fails to load.
+4. Merge `keys/persona5.json` into `~/.config/herdr-app/keys.json`. Preserve existing sections and bindings; add the shortcut under `"layout:persona5"`. If that exact binding already has another action, leave it and report the conflict; the toolbar button remains available.
+5. Check each mod. Without `sp.js`, `p5-agents` fails to load.
 
    ```sh
    for m in ~/.config/herdr-app/mods/p5-*; do herdr-app check "$m"; done
    ```
 
-5. Tell the person to switch to the layout from the layout picker, or to press `ctrl-shift-l` until Persona 5 shows.
-6. If their Claude plan uses the default 5-minute prompt cache, set `CACHE_TTL` in `~/.config/herdr-app/mods/p5-agents/main.js` to `5 * 60000`.
+6. Tell the person to switch to the layout from the layout picker, or to press `ctrl-shift-l` until Persona 5 shows.
+7. If their Claude plan uses the default 5-minute prompt cache, set `CACHE_TTL` in `~/.config/herdr-app/mods/p5-agents/main.js` to `5 * 60000`.
+
+To replace an existing shell pane with Quick Terminal, focus it and run `herdr-app do p5-chrome.adopt-quick-terminal`. Park the terminal instead of closing its pane with `pane.close`, which would terminate it. Leave other panes untouched.
 
 Copy files rather than symlinking them. Herdr doesn't notice edits behind a symlinked mod or layout, and a symlinked `persona5.svg` shows an empty card in the layout picker.
 
 ## Done when
 
-- `herdr-app check mods/<name>` passes for all six `p5-*` mods.
+- `herdr-app check mods/<name>` passes for all seven `p5-*` mods.
 - `herdr-app status` shows `"errors": []` after `layout.switch {"name":"persona5"}`.
 - A screenshot shows:
   - striped red bars with no divider lines
@@ -146,5 +153,6 @@ Copy files rather than symlinking them. Herdr doesn't notice edits behind a syml
   - a slanted top on every pane, with a white line on the focused one
 - An agent that has never run a turn shows `HP 0 / SP 100`.
 - `bun test` passes.
+- Toggle Quick Terminal twice and reopen it; confirm its shell pid and current directory survive. Switch spaces and confirm each gets a separate shell. Confirm the popup is centered and matches the pane headers. Check keyboard input reaches the floating terminal after opening it.
 - With `sp-context.js`, a Claude Code agent's SP is within 2 of `100 - /context`'s used percent of its window.
 - Blocking an agent shows the yellow `NEEDS YOU!` chip in the status bar.
