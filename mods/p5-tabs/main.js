@@ -31,11 +31,14 @@ class Morph extends View {
     this.fill = props.fill;
     this.edge = props.edge;
     this.lag = props.lag;
-    cx.timer.every(33, (cx) => cx.notify());
+    cx.timer.every(33, (cx) => {
+      if (shared("p5.motion") !== false || !this.still) cx.notify();
+    });
   }
 
   render() {
-    const shape = morphed(Date.now() - this.lag);
+    this.still = shared("p5.motion") === false;
+    const shape = morphed(this.still ? 0 : Date.now() - this.lag);
     return div()
       .size_full()
       .relative()
