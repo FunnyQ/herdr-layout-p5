@@ -3,3 +3,4 @@ jsconfig.json
 *.error
 .cockpit/
 mods/p5-agents/sp.js
+assets/
