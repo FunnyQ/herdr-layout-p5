@@ -2,3 +2,4 @@ gpui-kit.d.ts
 jsconfig.json
 *.error
 .cockpit/
+mods/p5-agents/sp.js

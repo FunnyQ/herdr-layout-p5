@@ -20,6 +20,7 @@ import {
   window,
   layout,
 } from "herdr";
+import { startSp, sp as spLeft } from "./sp.js";
 
 const p5 = () => true;
 const P5_COLORS = {
@@ -198,6 +199,7 @@ export default class Agents extends View {
     this.changed = JSON.parse(localStorage.getItem("changed") ?? "{}");
     this.pins = JSON.parse(localStorage.getItem("pins") ?? "[]");
     cx.timer.every(30000, (cx) => cx.notify());
+    startSp(cx);
   }
 
   // Stamps agents whose state changed. Done and idle count as one: looking at a
@@ -330,6 +332,62 @@ export default class Agents extends View {
     const st = kidStatus(k, this.listed);
     const pic = icon(k.program, 14, t.foreground);
     const on = k.address === shown;
+    const name = k.name || k.template || k.program?.name || k.address;
+    if (p5())
+      return h_flex()
+        .id(`sub-${k.address}`)
+        .pl(39)
+        .pr(8)
+        .h(26)
+        .flex_none()
+        .items_center()
+        .cursor_pointer()
+        .on_click(() => this.peek(k.address))
+        .children(
+          s.lines.map((l) =>
+            div()
+              .self_start()
+              .mt(-4)
+              .w(9)
+              .h(17)
+              .mr(4)
+              .flex_none()
+              .when(Boolean(l), (el) => el.border_l(2).border_color("#000000"))
+              .when(l === "└" || l === "├", (el) => el.border_b(2)),
+          ),
+        )
+        .child(
+          h_flex()
+            .relative()
+            .flex_1()
+            .min_w(0)
+            .h(22)
+            .pl(10)
+            .pr(14)
+            .gap(6)
+            .items_center()
+            .child(
+              globalThis.window
+                .paint_path(SLANT, on ? "#000000" : "#8a000b")
+                .absolute()
+                .inset_0(),
+            )
+            .when(Boolean(pic), (el) => el.child(pic))
+            .child(
+              div()
+                .flex_1()
+                .min_w(0)
+                .truncate()
+                .italic()
+                .font_weight(800)
+                .text_size(11)
+                .text_color(on ? "#ffffff" : "#ffb8bd")
+                .child(name.toUpperCase()),
+            )
+            .child(
+              this.status({ ...t, blocked: "#ffd400" }, { status: st }, true),
+            ),
+        );
     return h_flex()
       .id(`sub-${k.address}`)
       .pl(39)
@@ -364,7 +422,7 @@ export default class Agents extends View {
           .flex_1()
           .truncate()
           .text_color(on ? t.foreground : t.muted)
-          .child(k.name || k.template || k.program?.name || k.address),
+          .child(name),
       )
       .child(this.status(t, { status: st }, compact));
   }
@@ -378,7 +436,7 @@ export default class Agents extends View {
         .mx(1)
         .flex_none()
         .text_color(t.working)
-        .spin(900);
+        .spin(1800);
     if (a.status === "blocked" && compact)
       return div()
         .size(14)
@@ -600,7 +658,7 @@ export default class Agents extends View {
       const sub = full && !plainTab && tabName !== name ? tabName : null;
       if (p5()) {
         const turn = turns.get(a.address) ?? 0;
-        const sp = Math.max(0, 100 - turn);
+        const sp = spLeft(a.address, turn);
         const cacheLeft =
           turn === 0
             ? 0
@@ -610,8 +668,7 @@ export default class Agents extends View {
                 ? Math.max(0, CACHE_TTL - (now - when))
                 : 0;
         const energy = cacheLeft / CACHE_TTL;
-        const hp =
-          cacheLeft > 0 ? String(Math.ceil(cacheLeft / 60000)) : "COLD";
+        const hp = String(Math.ceil(cacheLeft / 60000));
         const bar = (fill, color) =>
           div()
             .h(4)
@@ -723,7 +780,7 @@ export default class Agents extends View {
                   .child(
                     div()
                       .text_size(17)
-                      .text_color(cacheLeft > 0 ? "#5ef2ff" : "#7a7a7a")
+                      .text_color(cacheLeft > 0 ? "#5ef2ff" : "#ffd400")
                       .child(hp),
                   )
                   .child(div().text_size(14).text_color("#ffffff").child("/"))
@@ -750,7 +807,7 @@ export default class Agents extends View {
                 .child(duration(now - when)),
             ),
           )
-          .child(this.status(t, a, byPriority && !isPinned));
+          .child(this.status({ ...t, blocked: "#ffd400" }, a, true));
       }
       return h_flex()
         .id(`ag-${a.address}`)
