@@ -24,7 +24,7 @@ import { startSp, sp as spLeft } from "./sp.js";
 
 const p5 = () => true;
 const P5_COLORS = {
-  chrome: "#b3000e",
+  chrome: "#b3000ecc",
   foreground: "#ffffff",
   muted: "#ffd6d9",
   dim: "#ffb8bd",
@@ -754,7 +754,7 @@ export default class Agents extends View {
           .id(`ag-${a.address}`)
           .relative()
           .mx(6)
-          .my(8)
+          .my(20)
           .h(84)
           .flex_none()
           .pl(18)
@@ -1053,7 +1053,7 @@ export default class Agents extends View {
     // The block is as tall as the inbox, capped, so the spaces list keeps the rest.
     if (!collapsed) {
       const card = (a) =>
-        100 +
+        124 +
         (this.folded.has(a.address)
           ? 0
           : this.tree(all, a.address).length * 26);
