@@ -57,7 +57,7 @@ Nothing reaches the network.
 - The context-window SP finds a Codex session by its `resume` id, else by the newest interactive thread in the agent's folder. Two Codex agents started fresh in the same folder can show the same SP.
 - Agents on other machines, and other agents such as OpenCode, keep the turn-based SP.
 - On the first run, `p5-agents` stamps every agent "now", so HP and the time are off until each agent changes state once.
-- The animated selection slabs repaint the window at about 30fps while they are on screen.
+- The morphing selection slabs re-render at about 30fps for as long as the layout is loaded.
 
 ## Design notes
 
