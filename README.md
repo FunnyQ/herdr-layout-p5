@@ -7,6 +7,7 @@ A Persona 5 style layout for [herdr-app](https://herdr.dev): deep red striped ba
 ## What's inside
 
 - `layouts/persona5.json`: the layout, with `layouts/persona5.svg` as its picker preview.
+- `mods/p5-chrome/wallpaper.jpg`: the window wallpaper, behind 80% opaque bars and see-through panes.
 - `themes/persona5.json`: the terminal theme (near-black background, red-leaning ANSI palette).
 - `mods/`: six mods the layout draws with.
   - `p5-chrome`: the brand row and the sidebar footer.

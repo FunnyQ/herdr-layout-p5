@@ -6,9 +6,9 @@ A herdr-app layout in the style of Persona 5's menus. Every bar is deep red with
 
 ## What you see
 
-Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45°. "Selected style" means a black irregular quad (corners at different heights), a 2px white outline, and a `#e60012` copy of the quad offset about 5px right and 4px down. On the active space, the focused agent and the active tab, the black quad and its red copy morph: each corner drifts up to about 5px inward on a 2.4s cosine, out of step with the other corners, and the red copy runs half a period behind the black quad. "Unselected style" means a `#7a0009` slant with `#ffb8bd` text. Text is heavy italic caps throughout.
+Red is `#b3000e` at 80% opacity (`#b3000ecc`) everywhere, so the wallpaper shows through every bar. Stripes are `#00000040`, 3px wide every 14px, at 45°. "Selected style" means a black irregular quad (corners at different heights), a 2px white outline, and a `#e60012` copy of the quad offset about 5px right and 4px down. On the active space, the focused agent and the active tab, the black quad and its red copy morph: each corner drifts up to about 5px inward on a 2.4s cosine, out of step with the other corners, and the red copy runs half a period behind the black quad. "Unselected style" means a `#7a0009` slant with `#ffb8bd` text. Text is heavy italic caps throughout.
 
-- **Window background** (behind the panes): flat `#b3000e`. There are no dividers between regions, so the bars and the sidebar run edge to edge.
+- **Window background** (behind every bar and pane): the wallpaper `mods/p5-chrome/wallpaper.jpg`, a 3840×2160 JPEG, fit `cover`. There are no dividers between regions, so the bars and the sidebar run edge to edge.
 - **Sidebar, left, 268px:**
   - **Brand row, 46px** (`p5-chrome`): the Herdr icon, a `HERDR` section tag, and the search and sidebar-toggle buttons. Dragging it moves the window.
   - **Section tags** (`HERDR`, `SPACES`, `AGENTS`): selected-style quads. The first letter is set at 1.45× (23px against 16px), like a ransom-note title.
@@ -16,7 +16,7 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
     - Unselected rows are 46px tall (32px without a branch line) with 12px side padding. Every second row is indented 12px for a zig-zag.
     - The active space is a selected-style quad, 66px tall (48px without a branch line), padded 24px left and 20px right, with a `#bdbdbd` branch line. Its black slab and red copy morph like the focused agent's: each corner drifts inward 2% across and 8% up or down (about 5px), the red copy half a period behind.
     - When any agent in the space is working, a 12px `#ffd400` spinner sits right of the name, left of the blocked `!` or done dot.
-  - **Agents** (`p5-agents`): the block grows with its content, from 56px up to 420px, so one card never shows a scrollbar. The focused agent always leads the list in its own `Selected` section, above `Pinned`, and names its space. The default Priority sort then lists sections `Needs you`, `Done`, then `Working` (idle agents are hidden); Grouped by space lists every other agent under its space name. Section labels sit at the right edge, clear of the portraits. Only the display moves: the agent order for next/previous keeps the focused agent in place, or next would bounce between two agents. Each agent is an 84px black irregular card:
+  - **Agents** (`p5-agents`): the block grows with its content, from 56px up to 420px, so one card never shows a scrollbar. The focused agent always leads the list in its own `Selected` section, above `Pinned`, and names its space. The default Priority sort then lists sections `Needs you`, `Done`, then `Working` (idle agents are hidden); Grouped by space lists every other agent under its space name. Section labels sit at the right edge, clear of the portraits. Only the display moves: the agent order for next/previous keeps the focused agent in place, or next would bounce between two agents. Each agent is an 84px black irregular card, with 20px above and below:
     - **Left:** a 120px party portrait from `p5-agents/portraits/<program.key>.png` (`claude`, `codex`, `opencode`), in a 62px slot, offset 50px left and 20px up so it breaks over both left corners of the card. Other programs show their icon at 30px inside the card. The portraits are 256px, sharp on 2x screens.
     - **Middle:** the name, then a stat line of 20px weight-900 numbers padded to three digits (`HP 048 SP 015`), the padding zeros at 50% opacity, then two 4px bars, the pink one shifted 10px right of the cyan one:
       - `HP` in `#5ef2ff`: minutes left before the prompt cache goes cold. It is full while the agent is working and counts down from its last state change. It shows a `#ffd400` `0` once the time runs out, or when the agent has never run a turn.
@@ -27,7 +27,7 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
     - **Sub-agents:** 26px rows under their parent, joined by 2px black tree lines. Each is a 22px `#8a000b` slant with an 18px portrait or icon, the name in 11px weight-800 italic caps in `#ffb8bd`, and the status icon. The peeked one is a black slant with white text.
   - **Footer, 92px** (`p5-chrome` with `footer: true`): a black block whose top edge slopes up to the right, holding `SETTINGS` and `ADD MACHINE`.
 - **Tab bar, 42px** (`p5-tabs`): red with stripes. Tabs are spaced 10px apart and use 13px weight-800 italic caps. The active tab is selected style (32px tall, 20px side padding); the other tabs are unselected style. Files and Changes toggles sit on the right.
-- **Panes** (`main`): `#0d0d0d`, 10px gap, no border. Each pane has a 42px header (`p5-pane`), red with stripes, overlaid with a `#0d0d0d` slab whose top runs from 38% height on the left up to the top right. The slab merges with the terminal below, so the pane looks cut on a slant, with a red wedge in its top-left corner.
+- **Panes** (`main`): `#0d0d0d66` (40% opacity) over terminals at 0.6 opacity, 10px gap, no border. Each pane has a 42px header (`p5-pane`) that paints only a slab whose top runs from 38% height on the left up to the top right: red with stripes, overlaid with `#0d0d0d66`. Above the slant the header is transparent, so the wallpaper shows in the wedge. The slab merges with the terminal below, so the pane looks cut on a slant.
   - The focused pane has a 4px white line along the slant, a white irregular name tag with black text, and a red offset copy behind the tag. The white tag is drawn 3px past its 24px row above and below and 6px past it on each side, so it reaches the pane's left edge with no red gap.
   - Other panes have an unselected-style name tag.
   - The folder follows in `#ffb8bd`.
@@ -53,10 +53,10 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
 
 ## Built from
 
-- `layouts/persona5.json`: a root row of `sidebar` and `work`. The root sets `theme: persona5`, `background: "#b3000e"`, `titlebar: none` and `traffic_lights: [12, 16]`, and has no `divider`.
+- `layouts/persona5.json`: a root row of `sidebar` and `work`. The root sets `theme: persona5`, `background: {image: "mods/p5-chrome/wallpaper.jpg", fit: "cover"}`, `terminal_opacity: 0.6`, `titlebar: none` and `traffic_lights: [12, 16]`, and has no `divider`.
   - `sidebar` is a column of `brand`, `sidebar-lists` (holding `spaces` and `agents`) and `sidebar-footer`.
   - `work` is a column of `tabs`, a `work-body` row, and `status`. `work-body` holds `main` and the hidden `panel` stack of `files` and `changes`.
-  - The pane frame in `main` is `{gap: 10, radius: 0, background: "#0d0d0d", border/focus width 0, header {mod: p5-pane, height: 42}, lone: true}`.
+  - The pane frame in `main` is `{gap: 10, radius: 0, background: "#0d0d0d66", border/focus width 0, header {mod: p5-pane, height: 42}, lone: true}`.
 - The mods:
   - `p5-tabs`, `p5-pane`, `p5-chrome` and `p5-status` are clones of Herdr 0.1.9's `tabs`, `pane`, `workspace-chrome` and `workspace-status`.
   - `p5-spaces` and `p5-agents` are reworked spaces and agents lists.
@@ -66,7 +66,7 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
   - The static red offset copies are the same path with `.top(4).left(6).right(-6).bottom(-4)`.
   - The morphing quads (active space, focused agent, active tab) are a nested `Morph` view per layer, made once with `cx.new(Morph, { fill, edge, lag })`. Each rebuilds its polygon from `Date.now() - lag` on its own 33ms timer. When `shared("p5.motion")` is `false`, each renders once at its rest shape, `morphed(0)`, and its timer stops calling `notify`. The red layer sits in a wrapper `div().absolute().top(4).left(6)` (`.left(5)` on the tab) with `lag` set to half the 2.4s period. Corner drift is 2% across and 5px up or down on agent cards (a fixed 84px tall), 2% and 8% on spaces, and 4% and 12% on tabs.
   - Stripes are a full-rect path painted with `Background.pattern_slash("#00000040", 3, 14)`.
-- Each mod overrides theme colors locally (`{ ...theme(), chrome: "#b3000e", ... }`).
+- Each mod overrides theme colors locally (`{ ...theme(), chrome: "#b3000ecc", ... }`).
 - HP reads a constant `CACHE_TTL` in `p5-agents/main.js`: 60 minutes, for Claude plans with the 1-hour prompt cache. Set it to `5 * 60000` for the default 5-minute cache.
 - SP comes from `p5-agents/sp.js`, which install copies from one of two files. Both export `startSp(cx)` and `sp(address, turn)`. `sp.js` is gitignored.
   - `sp-turns.js`: `100 - turn`, where `turn` comes from `terminals()`, the same field `hc ls --json` reports.
@@ -89,7 +89,7 @@ Red is `#b3000e` everywhere. Stripes are `#00000040`, 3px wide every 14px, at 45
 - The `Morph` timers for the active space, focused agent and active tab re-render at about 30fps for as long as the mods are loaded, even with nothing selected on screen. With animation off, the timers still wake every 33ms but skip the render.
 - `.loop()` animates only `left`, `top`, `width`, `height` and `opacity`, never a path's points. A morphing shape needs its own nested view that rebuilds the path on a timer; keep it out of the parent's render so a frame rebuilds only that view.
 - `colors.border: "#000000"` also blacks out every other use of `t.border`: the separators in `menu` and `new-menu` vanish against the `#000000` popover, and the frames and dividers in `files` and `changes` nearly vanish against `#0d0d0d`.
-- The Agents block sizes itself with `layout.resize`. Count its 53px title row, 28px bottom row, 30px per section header, 100px per card, 26px per unfolded sub-agent and 8px for the red copy, or one card shows a scrollbar.
+- The Agents block sizes itself with `layout.resize`. Count its 53px title row, 28px bottom row, 30px per section header, 124px per card, 26px per unfolded sub-agent and 8px for the red copy, or one card shows a scrollbar.
 - `line_height` given a bare number is a multiplier (`1.1`), not pixels.
 - Herdr doesn't notice edits behind a symlinked mod or layout, and a symlinked mod can't load SVGs from its own folder. Switch layouts (`ctrl-shift-l`) to reload.
 - When `layouts/persona5.svg` is a symlink, the layout picker shows an empty preview card. Copy the file into `~/.config/herdr-app/layouts/` instead of linking it.
