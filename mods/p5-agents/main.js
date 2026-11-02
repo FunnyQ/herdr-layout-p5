@@ -754,7 +754,7 @@ export default class Agents extends View {
                 .id(`selected-fold-${a.address}`)
                 .absolute()
                 .top(-16)
-                .right(18)
+                .right(-8)
                 .w(95)
                 .h(38)
                 .child(image("mods/p5-agents/selected.png").size_full())
