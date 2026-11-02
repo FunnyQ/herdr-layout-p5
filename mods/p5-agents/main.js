@@ -3,6 +3,7 @@
 
 import { PathBuilder, Background, View, div, image, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
+import { sidebarTear } from "./torn.js";
 import {
   agents,
   terminals,
@@ -50,6 +51,17 @@ const stripes = () =>
     .paint_path(FULL, Background.pattern_slash("#00000020", 3, 14))
     .absolute()
     .inset_0();
+
+// The sidebar block `id`: its red fill torn along the right edge, with paper showing at the tear.
+function tornBg(el, id, color) {
+  const tear = sidebarTear(layout(), id, globalThis.window.viewport_size().height);
+  if (!tear) return el.bg(color).child(stripes());
+  const fill = PathBuilder.fill().add_polygon(tear.fill).build();
+  return el
+    .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
+    .child(globalThis.window.paint_path(fill, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0())
+    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), "#ffffff").absolute().inset_0());
+}
 // prompt cache lifetime after the last turn; 5 min on default Claude Code, 1 h on plans with the extended TTL
 const CACHE_TTL = 60 * 60000;
 const CARD_SHAPE = [
@@ -1061,9 +1073,9 @@ export default class Agents extends View {
     return v_flex()
       .size_full()
       .min_h(0)
-      .bg(t.chrome)
       .relative()
-      .when(p5(), (el) => el.child(stripes()))
+      .when(!p5(), (el) => el.bg(t.chrome))
+      .when(p5(), (el) => tornBg(el, "agents", t.chrome))
       .when(!p5(), (el) => el.border_t(1).border_color(t.border))
       .text_size(13)
       .when(!collapsed, (el) =>

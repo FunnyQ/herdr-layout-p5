@@ -5,6 +5,7 @@
 
 import { View, div, image, svg, PathBuilder, Background } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
+import { sidebarTear } from "./torn.js";
 import {
   agents,
   spaces,
@@ -26,6 +27,17 @@ import {
 const P5_COLORS = { chrome: "#93000be6", foreground: "#ffffff", muted: "#ffd6d9", dim: "#ffb8bd", hover: "#00000033", selected: "#000000", raised: "#00000055", border: "#000000", working: "#ffd400", done: "#ffffff", blocked: "#ffd400" };
 const FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
 const stripes = () => globalThis.window.paint_path(FULL, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
+
+// The sidebar block `id`: its red fill torn along the right edge, with paper showing at the tear.
+function tornBg(el, id, color) {
+  const tear = sidebarTear(layout(), id, globalThis.window.viewport_size().height);
+  if (!tear) return el.bg(color).child(stripes());
+  const fill = PathBuilder.fill().add_polygon(tear.fill).build();
+  return el
+    .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
+    .child(globalThis.window.paint_path(fill, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0())
+    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), "#ffffff").absolute().inset_0());
+}
 const p5 = () => true;
 
 function find(node, id) {
@@ -685,9 +697,9 @@ export default class Spaces extends View {
     return v_flex()
       .size_full()
       .min_h(0)
-      .bg(t.chrome)
       .relative()
-      .when(p5(), (el) => el.child(stripes()))
+      .when(!p5(), (el) => el.bg(t.chrome))
+      .when(p5(), (el) => tornBg(el, "spaces", t.chrome))
       .text_size(13)
       .child(
         h_flex()

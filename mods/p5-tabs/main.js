@@ -1,9 +1,21 @@
 import { View, div, svg, image, PathBuilder, Background } from "gpui-kit";
 import { h_flex } from "gpui-base";
+import { barTear } from "./torn.js";
 import { spaces, panes, run, openOverlay, theme, window as appWindow, shared, layout, settings } from "herdr";
 
 const STRIPES_FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
 const stripes = () => globalThis.window.paint_path(STRIPES_FULL, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
+
+// This bar's red fill torn along its bottom edge, with paper showing at the tear.
+function tornBar(el, color) {
+  const tear = barTear(layout(), "tabs", globalThis.window.viewport_size().width, "bottom");
+  if (!tear) return el.bg(color).child(stripes());
+  const fill = PathBuilder.fill().add_polygon(tear.fill).build();
+  return el
+    .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
+    .child(globalThis.window.paint_path(fill, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0())
+    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), "#ffffff").absolute().inset_0());
+}
 const SLANT = PathBuilder.fill().add_polygon([["8%", 0], ["100%", 0], ["92%", "100%"], [0, "100%"]]).build();
 const slant = (color) => globalThis.window.paint_path(SLANT, color).absolute().inset_0();
 
@@ -43,13 +55,13 @@ class Morph extends View {
       .size_full()
       .relative()
       .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(shape).build(), this.fill).absolute().inset_0())
-      .when(Boolean(this.edge), (el) => el.child(globalThis.window.paint_path(PathBuilder.stroke(1.5).add_polygon(shape, true).build(), this.edge).absolute().inset_0()));
+      .when(Boolean(this.edge), (el) => el.child(globalThis.window.paint_path(PathBuilder.stroke(2).add_polygon(shape, true).build(), this.edge).absolute().inset_0()));
   }
 }
 
 export default class Tabs extends View {
   init(_props, cx) {
-    this.morph = cx.new(Morph, { fill: "#000000", edge: "#ff6975", lag: 0 });
+    this.morph = cx.new(Morph, { fill: "#000000", edge: "#ffffff", lag: 0 });
     this.shadow = cx.new(Morph, { fill: "#e60012", edge: null, lag: MORPH_PERIOD / 2 });
     this.pressed = null;
     this.panels = JSON.parse(localStorage.getItem("panels") ?? "{}");
@@ -95,10 +107,10 @@ export default class Tabs extends View {
       const name = /^tb\d+$/.test(c.name) ? program?.name ?? "Terminal" : c.name;
       return h_flex().id(`tab-${c.id}`).relative().h(30).px(16).gap(6).items_center().flex_none().text_size(12.5).font_weight(700).italic()
         .text_color(c.active ? "#ffffff" : "#ffb8bd")
-        .when(c.active, el => el.h(38).py(4)
-          .child(div().absolute().top(3).left(3).w_full().h_full().child(this.shadow))
-          .child(div().absolute().inset_0().child(this.morph)))
-        .when(!c.active, el => el.child(slant("#00000033")))
+        .when(c.active, el => el.h(46).px(26).py(4).text_size(14)
+          .child(div().absolute().top(0).bottom(-4).left(2).right(-10).child(this.shadow))
+          .child(div().absolute().top(-2).bottom(2).left(-4).right(-4).child(this.morph)))
+        .when(!c.active, el => el.h(26).text_size(12).child(globalThis.window.paint_path(SLANT, "#000000").absolute().top(2).left(2).w_full().h_full()).child(slant("#6a0009")))
         .hover(s => s.text_color("#ffffff"))
         .on_mouse_down("left", (e, cx) => { cx.stop_propagation(); this.pressed = i; if (e.click_count === 2) run("tab.rename", { id: c.id }); })
         .on_mouse_up("left", () => {
@@ -131,10 +143,10 @@ export default class Tabs extends View {
           else { run("layout.select", { stack: "panel-body", child: id }); run("layout.show", { id: "panel" }); }
         }).child(svg(icon).size(14)).child(label);
     };
-    return h_flex().size_full().min_w(0).px(10).pl(lightsPadding).gap(3).items_center().bg(t.chrome).relative().child(stripes())
+    return tornBar(h_flex().size_full().min_w(0).px(10).pl(lightsPadding).gap(3).items_center().relative(), t.chrome)
       .on_mouse_up("left", () => { this.pressed = null; })
       .on_scroll_wheel(e => { if (Math.abs(e.delta.y) >= 1) run(e.delta.y > 0 ? "tab.prev" : "tab.next"); })
-      .child(h_flex().id("tab-scroll").flex_1().min_w(0).h_full().items_center().gap(8).overflow_x_scrollbar().children(shown.map(item)))
+      .child(h_flex().id("tab-scroll").flex_1().min_w(0).h_full().pl(6).pr(8).items_center().gap(8).overflow_x_scrollbar().children(shown.map(item)))
       .child(button("tab-new", svg("mods/workspace-chrome/plus.svg").size(14), () => openOverlay({ mod: "new-menu", kind: "popup", width: 250, height: 512 })))
       .when(enabled.includes("files"), el => el.child(panelButton("files", "Files", "mods/files/file.svg")))
       .when(enabled.includes("changes"), el => el.child(panelButton("changes", "Changes", "mods/changes/changes.svg")))
