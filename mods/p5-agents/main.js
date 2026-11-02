@@ -59,7 +59,12 @@ function paintTear(el, tear, color) {
   return el
     .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
     .child(stripes(fill))
-    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER).absolute().inset_0());
+    .child(
+      globalThis.window
+        .paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER)
+        .absolute()
+        .inset_0(),
+    );
 }
 // prompt cache lifetime after the last turn; 5 min on default Claude Code, 1 h on plans with the extended TTL
 const CACHE_TTL = 60 * 60000;
@@ -76,6 +81,13 @@ const SLANT = PathBuilder.fill()
     ["97%", 0],
     ["100%", "84%"],
     ["4%", "100%"],
+  ])
+  .build();
+const ARROW = PathBuilder.fill()
+  .add_polygon([
+    [0, 0],
+    ["100%", "50%"],
+    [0, "100%"],
   ])
   .build();
 
@@ -380,8 +392,21 @@ export default class Agents extends View {
               .h(17)
               .mr(4)
               .flex_none()
-              .when(Boolean(l), (el) => el.border_l(2).border_color("#000000"))
-              .when(l === "└" || l === "├", (el) => el.border_b(2)),
+              .when(Boolean(l), (el) => el.border_l(2).border_color("#ffffff"))
+              .when(l === "└" || l === "├", (el) =>
+                el
+                  .relative()
+                  .border_b(2)
+                  .child(
+                    globalThis.window
+                      .paint_path(ARROW, "#ffffff")
+                      .absolute()
+                      .right(-4)
+                      .bottom(-5)
+                      .w(6)
+                      .h(8),
+                  ),
+              ),
           ),
         )
         .child(
@@ -706,7 +731,11 @@ export default class Agents extends View {
             .text_size(20)
             .font_weight(900)
             .text_color(color)
-            .child(div().opacity(0.5).child("0".repeat(Math.max(0, 3 - String(n).length))))
+            .child(
+              div()
+                .opacity(0.5)
+                .child("0".repeat(Math.max(0, 3 - String(n).length))),
+            )
             .child(div().child(String(n)));
         const bar = (fill, color) =>
           div()
@@ -749,7 +778,15 @@ export default class Agents extends View {
             ),
           )
           .when(a.focused, (el) =>
-            el.child(div().absolute().top(0).bottom(0).left(24).right(0).child(this.morph)),
+            el.child(
+              div()
+                .absolute()
+                .top(0)
+                .bottom(0)
+                .left(24)
+                .right(0)
+                .child(this.morph),
+            ),
           )
           .when(!a.focused, (el) =>
             el.child(
@@ -845,7 +882,12 @@ export default class Agents extends View {
                 v_flex()
                   .gap(3)
                   .child(div().pr(14).child(bar(energy, "#5ef2ff")))
-                  .child(div().pl(10).pr(4).child(bar(sp / 100, "#ff5fb4"))),
+                  .child(
+                    div()
+                      .pl(10)
+                      .pr(4)
+                      .child(bar(sp / 100, "#ff5fb4")),
+                  ),
               ),
           )
           .when(this.hovered === a.address, (el) => el.child(pin))
@@ -991,7 +1033,8 @@ export default class Agents extends View {
         });
     }
 
-    const showHeader = (g) => !p5() || g.id !== "selected" || this.folded.has(g.id);
+    const showHeader = (g) =>
+      !p5() || g.id !== "selected" || this.folded.has(g.id);
 
     // A group's header; it folds the group. Folded, it says how many and the most urgent state.
     const header = (g) => {
@@ -1018,13 +1061,40 @@ export default class Agents extends View {
         })
         .child(div().flex_1())
         .child(
-          div()
-            .truncate()
-            .text_color(t[g.status] ?? t.dim)
-            .child(g.label),
-        )
-        .when(g.id !== "selected" && (byPriority || !open), (el) =>
-          el.child(div().text_color(t.dim).child(String(g.members.length))),
+          h_flex()
+            .relative()
+            .min_w(0)
+            .gap(6)
+            .items_center()
+            .when(p5(), (el) =>
+              el
+                .h(20)
+                .px(10)
+                .child(
+                  globalThis.window
+                    .paint_path(SLANT, "#000000")
+                    .absolute()
+                    .top(3)
+                    .left(3)
+                    .w_full()
+                    .h_full(),
+                )
+                .child(
+                  globalThis.window
+                    .paint_path(SLANT, "#5c0008")
+                    .absolute()
+                    .inset_0(),
+                ),
+            )
+            .child(
+              div()
+                .truncate()
+                .text_color(t[g.status] ?? t.dim)
+                .child(g.label),
+            )
+            .when(g.id !== "selected" && (byPriority || !open), (el) =>
+              el.child(div().text_color(t.dim).child(String(g.members.length))),
+            ),
         )
         .when(!open, (el) =>
           el
@@ -1075,7 +1145,15 @@ export default class Agents extends View {
       .relative()
       .when(!p5(), (el) => el.bg(t.chrome))
       .when(p5(), (el) =>
-        paintTear(el, sidebarTear(layout(), "agents", globalThis.window.viewport_size().height), t.chrome),
+        paintTear(
+          el,
+          sidebarTear(
+            layout(),
+            "agents",
+            globalThis.window.viewport_size().height,
+          ),
+          t.chrome,
+        ),
       )
       .when(!p5(), (el) => el.border_t(1).border_color(t.border))
       .text_size(13)
@@ -1092,7 +1170,10 @@ export default class Agents extends View {
             .justify_between()
             .child(
               p5()
-                ? image("mods/p5-agents/title-horizontal.png").w(150).h(50).flex_none()
+                ? image("mods/p5-agents/title-horizontal.png")
+                    .w(150)
+                    .h(50)
+                    .flex_none()
                 : div()
                     .text_size(11.5)
                     .font_medium()
