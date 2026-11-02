@@ -222,10 +222,7 @@ class Morph extends View {
             .top(s.y)
             .size_full()
             .child(
-              fill(
-                morphed(this.still ? 0 : now - MORPH_STEP * s.lag),
-                s.color,
-              ),
+              fill(morphed(this.still ? 0 : now - MORPH_STEP * s.lag), s.color),
             ),
         ),
       )
@@ -1044,6 +1041,7 @@ export default class Agents extends View {
         (m, a) => ((RANK[a.status] ?? 0) > (RANK[m] ?? 0) ? a.status : m),
         null,
       );
+      const loud = g.status === "blocked";
       return h_flex()
         .id(g.id)
         .px(8)
@@ -1082,7 +1080,7 @@ export default class Agents extends View {
                 )
                 .child(
                   globalThis.window
-                    .paint_path(SLANT, "#5c0008")
+                    .paint_path(SLANT, loud ? "#ffd400" : "#5c0008")
                     .absolute()
                     .inset_0(),
                 ),
@@ -1090,11 +1088,17 @@ export default class Agents extends View {
             .child(
               div()
                 .truncate()
-                .text_color(t[g.status] ?? t.dim)
+                .text_color(loud ? "#000000" : (t[g.status] ?? t.dim))
                 .child(g.label),
             )
             .when(g.id !== "selected" && (byPriority || !open), (el) =>
-              el.child(div().text_color(t.dim).child(String(g.members.length))),
+              el.child(
+                div()
+                  .px(4)
+                  .bg("#000000")
+                  .text_color("#ffffff")
+                  .child(String(g.members.length)),
+              ),
             ),
         )
         .when(!open, (el) =>
