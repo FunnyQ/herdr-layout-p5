@@ -1,20 +1,19 @@
 import { View, div, svg, image, PathBuilder, Background } from "gpui-kit";
 import { h_flex } from "gpui-base";
-import { barTear } from "./torn.js";
+import { barTear, PAPER, noise } from "./torn.js";
 import { spaces, panes, run, openOverlay, theme, window as appWindow, shared, layout, settings } from "herdr";
 
 const STRIPES_FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
-const stripes = () => globalThis.window.paint_path(STRIPES_FULL, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
+const stripes = (path = STRIPES_FULL) => globalThis.window.paint_path(path, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
 
-// This bar's red fill torn along its bottom edge, with paper showing at the tear.
-function tornBar(el, color) {
-  const tear = barTear(layout(), "tabs", globalThis.window.viewport_size().width, "bottom");
+// Paints `color` over a torn fill with paper showing at the tear, or untorn without a tear.
+function paintTear(el, tear, color) {
   if (!tear) return el.bg(color).child(stripes());
   const fill = PathBuilder.fill().add_polygon(tear.fill).build();
   return el
     .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
-    .child(globalThis.window.paint_path(fill, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0())
-    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), "#ffffff").absolute().inset_0());
+    .child(stripes(fill))
+    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER).absolute().inset_0());
 }
 const SLANT = PathBuilder.fill().add_polygon([["8%", 0], ["100%", 0], ["92%", "100%"], [0, "100%"]]).build();
 const slant = (color) => globalThis.window.paint_path(SLANT, color).absolute().inset_0();
@@ -29,8 +28,9 @@ function find(node, id) {
 }
 
 // The active tab's slabs are their own views, so a frame rebuilds only them.
-const MORPH_PERIOD = 2400;
-const pull = (now, i) => (1 - Math.cos((now / MORPH_PERIOD) * 2 * Math.PI + i * 1.7)) / 2;
+const MORPH_STEP = 300;
+// Step motion: a new pose every MORPH_STEP ms, no in-between. Each corner's pull is a hash of the pose number.
+const pull = (now, i) => noise(Math.floor(now / MORPH_STEP) * 8 + i);
 const morphed = (now) => [
   [`${4 * pull(now, 0)}%`, `${16 + 12 * pull(now, 1)}%`],
   [`${97 - 4 * pull(now, 2)}%`, `${12 * pull(now, 3)}%`],
@@ -43,7 +43,7 @@ class Morph extends View {
     this.fill = props.fill;
     this.edge = props.edge;
     this.lag = props.lag;
-    cx.timer.every(33, (cx) => {
+    cx.timer.every(MORPH_STEP, (cx) => {
       if (shared("p5.motion") !== false || !this.still) cx.notify();
     });
   }
@@ -62,7 +62,7 @@ class Morph extends View {
 export default class Tabs extends View {
   init(_props, cx) {
     this.morph = cx.new(Morph, { fill: "#000000", edge: "#ffffff", lag: 0 });
-    this.shadow = cx.new(Morph, { fill: "#e60012", edge: null, lag: MORPH_PERIOD / 2 });
+    this.shadow = cx.new(Morph, { fill: "#e60012", edge: null, lag: MORPH_STEP * 6 });
     this.pressed = null;
     this.panels = JSON.parse(localStorage.getItem("panels") ?? "{}");
   }
@@ -143,7 +143,7 @@ export default class Tabs extends View {
           else { run("layout.select", { stack: "panel-body", child: id }); run("layout.show", { id: "panel" }); }
         }).child(svg(icon).size(14)).child(label);
     };
-    return tornBar(h_flex().size_full().min_w(0).px(10).pl(lightsPadding).gap(3).items_center().relative(), t.chrome)
+    return paintTear(h_flex().size_full().min_w(0).px(10).pl(lightsPadding).gap(3).items_center().relative(), barTear(root, "tabs", globalThis.window.viewport_size().width, "bottom"), t.chrome)
       .on_mouse_up("left", () => { this.pressed = null; })
       .on_scroll_wheel(e => { if (Math.abs(e.delta.y) >= 1) run(e.delta.y > 0 ? "tab.prev" : "tab.next"); })
       .child(h_flex().id("tab-scroll").flex_1().min_w(0).h_full().pl(6).pr(8).items_center().gap(8).overflow_x_scrollbar().children(shown.map(item)))

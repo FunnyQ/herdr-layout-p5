@@ -1,7 +1,7 @@
 // A paper tear along one edge. Its depth is a pure function of the position
 // along the whole edge, so blocks that each paint their own stretch meet without a seam.
 const STEP = 4;
-const noise = (k) => {
+export const noise = (k) => {
   const s = Math.sin(k * 127.1 + 311.7) * 43758.5453;
   return s - Math.floor(s);
 };
@@ -55,7 +55,9 @@ const AMP = 10;
 const BAR_AMP = 7;
 const LEAN = 12;
 const BAR_LEAN = 5;
-const RIM = 2;
+const RIM = 1.5;
+// The paper showing at a tear: warm and half see-through, so the rim reads as fibre, not an outline.
+export const PAPER = "#f2e6d699";
 const RAMP = 32;
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 

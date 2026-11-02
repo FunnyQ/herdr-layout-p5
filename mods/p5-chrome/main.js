@@ -3,7 +3,7 @@ import { h_flex, v_flex } from "gpui-base";
 import { theme, run, props, window, shared, setShared, updates, layout, nextCommand, notify } from "herdr";
 import * as herdr from "herdr";
 import { QuickTerminal } from "./quick-terminal.js";
-import { sidebarTear } from "./torn.js";
+import { sidebarTear, PAPER } from "./torn.js";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -28,17 +28,16 @@ function toggleSidebar() {
 
 const FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
 const FOOTER = PathBuilder.fill().add_polygon([[0, "22%"], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
-const stripes = () => globalThis.window.paint_path(FULL, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
+const stripes = (path = FULL) => globalThis.window.paint_path(path, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
 
-// The sidebar block `id`: its red fill torn along the right edge, with paper showing at the tear.
-function tornBg(el, id, color) {
-  const tear = sidebarTear(layout(), id, globalThis.window.viewport_size().height);
+// Paints `color` over a torn fill with paper showing at the tear, or untorn without a tear.
+function paintTear(el, tear, color) {
   if (!tear) return el.bg(color).child(stripes());
   const fill = PathBuilder.fill().add_polygon(tear.fill).build();
   return el
     .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
-    .child(globalThis.window.paint_path(fill, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0())
-    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), "#ffffff").absolute().inset_0());
+    .child(stripes(fill))
+    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER).absolute().inset_0());
 }
 
 export default class WorkspaceChrome extends View {
@@ -81,12 +80,12 @@ export default class WorkspaceChrome extends View {
         .when(!collapsed, el => el.child(label.toUpperCase()));
       const tear = sidebarTear(layout(), "sidebar-footer", globalThis.window.viewport_size().height);
       const ink = tear ? PathBuilder.fill().add_polygon([[0, "22%"], ...tear.fill.slice(1)]).build() : FOOTER;
-      return tornBg(v_flex().size_full().relative(), "sidebar-footer", t.chrome).child(globalThis.window.paint_path(ink, "#000000").absolute().inset_0()).px(8).pt(26).pb(10).text_size(13)
+      return paintTear(v_flex().size_full().relative(), tear, t.chrome).child(globalThis.window.paint_path(ink, "#000000").absolute().inset_0()).px(8).pt(26).pb(10).text_size(13)
         .child(row("settings", "settings", "Settings", false, () => run("app.settings"))
           .when(Boolean(updates().app.ready), el => el.child(div().size(6).rounded_full().bg("#ffffff"))))
         .child(row("machine", "plus", "Add machine", true, () => run("mod.open", { name: "machine-add" })));
     }
-    return tornBg(h_flex().size_full().relative(), "brand", t.chrome).pl(collapsed ? 6 : 14).pr(10).gap(4).items_center().text_size(13.5)
+    return paintTear(h_flex().size_full().relative(), sidebarTear(layout(), "brand", globalThis.window.viewport_size().height), t.chrome).pl(collapsed ? 6 : 14).pr(10).gap(4).items_center().text_size(13.5)
       .when(window()?.platform === "macos" && !collapsed, el => el.pl(76))
       .when(!collapsed, el => el.child(div().flex_1()))
       .when(!collapsed, el => el.child(this.button("quick-terminal", svg("mods/workspace-chrome/monitor.svg").size(15), () => run("p5-chrome.quick-terminal")).tooltip("Terminal (Ctrl+`)")))

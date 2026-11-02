@@ -5,7 +5,7 @@
 
 import { View, div, image, svg, PathBuilder, Background } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { sidebarTear } from "./torn.js";
+import { sidebarTear, PAPER, noise } from "./torn.js";
 import {
   agents,
   spaces,
@@ -26,17 +26,16 @@ import {
 
 const P5_COLORS = { chrome: "#93000be6", foreground: "#ffffff", muted: "#ffd6d9", dim: "#ffb8bd", hover: "#00000033", selected: "#000000", raised: "#00000055", border: "#000000", working: "#ffd400", done: "#ffffff", blocked: "#ffd400" };
 const FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
-const stripes = () => globalThis.window.paint_path(FULL, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
+const stripes = (path = FULL) => globalThis.window.paint_path(path, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
 
-// The sidebar block `id`: its red fill torn along the right edge, with paper showing at the tear.
-function tornBg(el, id, color) {
-  const tear = sidebarTear(layout(), id, globalThis.window.viewport_size().height);
+// Paints `color` over a torn fill with paper showing at the tear, or untorn without a tear.
+function paintTear(el, tear, color) {
   if (!tear) return el.bg(color).child(stripes());
   const fill = PathBuilder.fill().add_polygon(tear.fill).build();
   return el
     .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
-    .child(globalThis.window.paint_path(fill, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0())
-    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), "#ffffff").absolute().inset_0());
+    .child(stripes(fill))
+    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER).absolute().inset_0());
 }
 const p5 = () => true;
 
@@ -86,8 +85,9 @@ export function tone(t, status) {
 }
 
 // The active space's slabs are their own views, so a frame rebuilds only them.
-const MORPH_PERIOD = 2400;
-const pull = (now, i) => (1 - Math.cos((now / MORPH_PERIOD) * 2 * Math.PI + i * 1.7)) / 2;
+const MORPH_STEP = 300;
+// Step motion: a new pose every MORPH_STEP ms, no in-between. Each corner's pull is a hash of the pose number.
+const pull = (now, i) => noise(Math.floor(now / MORPH_STEP) * 8 + i);
 const morphed = (now) => [
   [`${2 * pull(now, 0)}%`, `${14 + 8 * pull(now, 1)}%`],
   [`${97 - 2 * pull(now, 2)}%`, `${8 * pull(now, 3)}%`],
@@ -100,7 +100,7 @@ class Morph extends View {
     this.fill = props.fill;
     this.edge = props.edge;
     this.lag = props.lag;
-    cx.timer.every(33, (cx) => {
+    cx.timer.every(MORPH_STEP, (cx) => {
       if (shared("p5.motion") !== false || !this.still) cx.notify();
     });
   }
@@ -119,7 +119,7 @@ class Morph extends View {
 export default class Spaces extends View {
   init(_props, cx) {
     this.morph = cx.new(Morph, { fill: "#000000", edge: "#ffffff", lag: 0 });
-    this.shadow = cx.new(Morph, { fill: "#e60012", edge: null, lag: MORPH_PERIOD / 2 });
+    this.shadow = cx.new(Morph, { fill: "#e60012", edge: null, lag: MORPH_STEP * 6 });
     this.git = {}; // where() -> { name, branch, ahead, behind, repo, linked }, null: not a repo
     this.checked = {}; // where() -> when it was last looked at
     this.unsure = new Set(); // where()s git couldn't answer for (a machine away)
@@ -699,7 +699,7 @@ export default class Spaces extends View {
       .min_h(0)
       .relative()
       .when(!p5(), (el) => el.bg(t.chrome))
-      .when(p5(), (el) => tornBg(el, "spaces", t.chrome))
+      .when(p5(), (el) => paintTear(el, sidebarTear(layout(), "spaces", globalThis.window.viewport_size().height), t.chrome))
       .text_size(13)
       .child(
         h_flex()

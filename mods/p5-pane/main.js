@@ -5,16 +5,19 @@
 // this pane. Props from the app: { pane, terminal }. Click: focus the pane.
 
 import { View, div, svg, image, PathBuilder, Background } from "gpui-kit";
+import { tearLine } from "./torn.js";
 
-// The header's top edge: a slant down to the left, torn. 36px tall, per the layout's header height.
-const TEAR = tearLine(0, 600, 4, [], 3).map(([x, d]) => [`${x / 6}%`, 7.2 * (1 - x / 600) + d]);
+// The header's top edge: a slant down to the left, torn. Laid out over SPAN units stretched to the pane's width.
+const HEADER_HEIGHT = 36; // layouts/persona5.json, pane.header.height
+const SLANT_DROP = 0.2 * HEADER_HEIGHT;
+const SPAN = 600;
+const TEAR = tearLine(0, SPAN, 4, [], 3).map(([x, d]) => [`${(x / SPAN) * 100}%`, SLANT_DROP * (1 - x / SPAN) + d]);
 const SLAB = PathBuilder.fill().add_polygon([...TEAR, ["100%", "100%"], [0, "100%"]]).build();
 const SLAB_TOP = PathBuilder.stroke(2).add_polygon(TEAR, false).build();
 const TAG_SHAPE = [[0, "14%"], ["96%", 0], ["100%", "86%"], ["3%", "100%"]];
 const TAG = PathBuilder.fill().add_polygon(TAG_SHAPE).build();
 const SLANT = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["88%", "100%"], [0, "100%"]]).build();
 import { h_flex } from "gpui-base";
-import { tearLine } from "./torn.js";
 import { panes, spaces, props, run, theme, home } from "herdr";
 
 function icon(p, size, color) {
