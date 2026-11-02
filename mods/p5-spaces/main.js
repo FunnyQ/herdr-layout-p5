@@ -24,9 +24,32 @@ import {
   props,
 } from "herdr";
 
-const P5_COLORS = { chrome: "#93000be6", foreground: "#ffffff", muted: "#ffd6d9", dim: "#ffb8bd", hover: "#00000033", selected: "#000000", raised: "#00000055", border: "#000000", working: "#ffd400", done: "#ffffff", blocked: "#ffd400" };
-const FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
-const stripes = (path = FULL) => globalThis.window.paint_path(path, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
+const P5_COLORS = {
+  chrome: "#93000be6",
+  foreground: "#ffffff",
+  muted: "#ffd6d9",
+  dim: "#ffb8bd",
+  hover: "#00000033",
+  selected: "#000000",
+  raised: "#00000055",
+  border: "#000000",
+  working: "#ffd400",
+  done: "#ffffff",
+  blocked: "#ffd400",
+};
+const FULL = PathBuilder.fill()
+  .add_polygon([
+    [0, 0],
+    ["100%", 0],
+    ["100%", "100%"],
+    [0, "100%"],
+  ])
+  .build();
+const stripes = (path = FULL) =>
+  globalThis.window
+    .paint_path(path, Background.pattern_slash("#00000020", 3, 14))
+    .absolute()
+    .inset_0();
 
 // Paints `color` over a torn fill with paper showing at the tear, or untorn without a tear.
 function paintTear(el, tear, color) {
@@ -35,7 +58,12 @@ function paintTear(el, tear, color) {
   return el
     .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
     .child(stripes(fill))
-    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER).absolute().inset_0());
+    .child(
+      globalThis.window
+        .paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER)
+        .absolute()
+        .inset_0(),
+    );
 }
 const p5 = () => true;
 
@@ -111,15 +139,34 @@ class Morph extends View {
     return div()
       .size_full()
       .relative()
-      .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(shape).build(), this.fill).absolute().inset_0())
-      .when(Boolean(this.edge), (el) => el.child(globalThis.window.paint_path(PathBuilder.stroke(2).add_polygon(shape, true).build(), this.edge).absolute().inset_0()));
+      .child(
+        globalThis.window
+          .paint_path(PathBuilder.fill().add_polygon(shape).build(), this.fill)
+          .absolute()
+          .inset_0(),
+      )
+      .when(Boolean(this.edge), (el) =>
+        el.child(
+          globalThis.window
+            .paint_path(
+              PathBuilder.stroke(2).add_polygon(shape, true).build(),
+              this.edge,
+            )
+            .absolute()
+            .inset_0(),
+        ),
+      );
   }
 }
 
 export default class Spaces extends View {
   init(_props, cx) {
     this.morph = cx.new(Morph, { fill: "#000000", edge: "#ffffff", lag: 0 });
-    this.shadow = cx.new(Morph, { fill: "#e60012", edge: null, lag: MORPH_STEP * 6 });
+    this.shadow = cx.new(Morph, {
+      fill: "#e60012",
+      edge: null,
+      lag: MORPH_STEP * 6,
+    });
     this.git = {}; // where() -> { name, branch, ahead, behind, repo, linked }, null: not a repo
     this.checked = {}; // where() -> when it was last looked at
     this.unsure = new Set(); // where()s git couldn't answer for (a machine away)
@@ -539,7 +586,9 @@ export default class Spaces extends View {
     const colors = shared("space.colors") ?? {};
     const color = colors[w.id] ?? "ansi6";
     const fill = color.startsWith("#") ? color : (MARK[color] ?? t[color]);
-    const tail = g ? this.gitTail(g, tree, w.name, on && p5() ? { ...t, dim: "#bdbdbd" } : t) : null;
+    const tail = g
+      ? this.gitTail(g, tree, w.name, on && p5() ? { ...t, dim: "#bdbdbd" } : t)
+      : null;
     const mine = agents().filter((a) => a.space === w.id);
     const blocked = mine.filter((a) => a.status === "blocked").length;
     const done = mine.filter((a) => a.status === "done").length;
@@ -552,12 +601,36 @@ export default class Spaces extends View {
       .px(8)
       .when(p5(), (el) => (on ? el.pl(24).pr(20).my(4) : el.px(12).my(1)))
       .when(p5() && i % 2 === 1, (el) => el.ml(12))
-      .h(p5() ? (on ? (tail ? 66 : 48) : tail ? 46 : 32) : tail ? 44 : rowHeight({ tree }))
+      .h(
+        p5()
+          ? on
+            ? tail
+              ? 66
+              : 48
+            : tail
+              ? 46
+              : 32
+          : tail
+            ? 44
+            : rowHeight({ tree }),
+      )
       .flex_none()
       .justify_center()
       .rounded(8)
       .when(on && !p5(), (el) => el.bg(t.selected))
-      .when(on && p5(), (el) => el.child(div().absolute().top(4).left(6).w_full().h_full().child(this.shadow)).child(div().absolute().inset_0().child(this.morph)))
+      .when(on && p5(), (el) =>
+        el
+          .child(
+            div()
+              .absolute()
+              .top(4)
+              .left(6)
+              .w_full()
+              .h_full()
+              .child(this.shadow),
+          )
+          .child(div().absolute().inset_0().child(this.morph)),
+      )
       .when(!on, (el) => el.hover((s) => s.bg(t.hover)))
       .when(
         this.pressed !== null && this.over === i && this.pressed !== i,
@@ -611,7 +684,12 @@ export default class Spaces extends View {
               .gap(2)
               .child(
                 p5()
-                  ? div().truncate().font_weight(800).italic().text_color(t.foreground).child(w.name.toUpperCase())
+                  ? div()
+                      .truncate()
+                      .font_weight(800)
+                      .italic()
+                      .text_color(t.foreground)
+                      .child(w.name.toUpperCase())
                   : div().truncate().text_color(t.foreground).child(w.name),
               )
               .when(Boolean(tail), (el) => el.child(tail)),
@@ -699,7 +777,17 @@ export default class Spaces extends View {
       .min_h(0)
       .relative()
       .when(!p5(), (el) => el.bg(t.chrome))
-      .when(p5(), (el) => paintTear(el, sidebarTear(layout(), "spaces", globalThis.window.viewport_size().height), t.chrome))
+      .when(p5(), (el) =>
+        paintTear(
+          el,
+          sidebarTear(
+            layout(),
+            "spaces",
+            globalThis.window.viewport_size().height,
+          ),
+          t.chrome,
+        ),
+      )
       .text_size(13)
       .child(
         h_flex()
@@ -710,7 +798,31 @@ export default class Spaces extends View {
           .justify_between()
           .text_size(p5() ? 15 : 11.5)
           .text_color(p5() ? t.foreground : t.dim)
-          .when(!collapsed, (el) => el.child(p5() ? image("mods/p5-spaces/title-horizontal.png").w(145).h(50).flex_none() : "Spaces"))
+          .when(!collapsed, (el) =>
+            el.child(
+              p5()
+                ? div()
+                    .relative()
+                    .w(145)
+                    .h(50)
+                    .flex_none()
+                    .child(
+                      image("mods/p5-spaces/title-shadow.png")
+                        .absolute()
+                        .top(3)
+                        .left(3)
+                        .size_full(),
+                    )
+                    .child(
+                      image("mods/p5-spaces/title-horizontal.png")
+                        .absolute()
+                        .top(0)
+                        .left(0)
+                        .size_full(),
+                    )
+                : "Spaces",
+            ),
+          )
           .child(
             div()
               .id("space-new")
