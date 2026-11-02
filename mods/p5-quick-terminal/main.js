@@ -1,50 +1,79 @@
 import { View, div, svg, image, PathBuilder } from "gpui-kit";
 import { props, spaces, panes, run, shared, setShared } from "herdr";
 
-const QUAD = [
-  ["2%", "4%"],
-  ["96%", 0],
-  ["100%", "96%"],
-  ["3%", "100%"],
+// The frame's slab steps to a new pose every MORPH_STEP ms, each corner pulled up to PULL px inward.
+const MORPH_STEP = 300;
+const PULL = 6;
+const noise = (k) => {
+  const s = Math.sin(k * 127.1 + 311.7) * 43758.5453;
+  return s - Math.floor(s);
+};
+const pull = (now, i) => PULL * noise(Math.floor(now / MORPH_STEP) * 8 + i);
+const SLAB = 9;
+// How far a corner may slant in before the slab's edge, pulled and stroked, reaches the terminal.
+const room = (margin) => margin - SLAB - PULL - 4;
+const quad = (w, h, now, frame) => [
+  [
+    Math.min(0.02 * w, room(frame.side)) + pull(now, 0),
+    Math.min(0.04 * h, room(frame.top)) + pull(now, 1),
+  ],
+  [w - Math.min(0.04 * w, room(frame.side)) - pull(now, 2), pull(now, 3)],
+  [w - pull(now, 4), h - Math.min(0.04 * h, room(frame.bottom)) - pull(now, 5)],
+  [Math.min(0.03 * w, room(frame.side)) + pull(now, 6), h - pull(now, 7)],
 ];
-const FILL = PathBuilder.fill().add_polygon(QUAD).build();
-const OUTLINE = PathBuilder.stroke(3).add_polygon(QUAD, true).build();
+const SHADOWS = [
+  { color: "#ff1a8cb3", lag: 6, x: 8, y: 6 },
+  { color: "#00e5ffb3", lag: 3, x: -6, y: -5 },
+];
 
 export default class QuickTerminalHeader extends View {
+  init(_props, cx) {
+    this.tick(cx);
+  }
+
+  // Each frame part redraws just past the same step boundary, so all four show one pose.
+  tick(cx) {
+    cx.timer.after(MORPH_STEP - (Date.now() % MORPH_STEP) + 10, (cx) => {
+      if (shared("p5.motion") !== false || !this.still) cx.notify();
+      this.tick(cx);
+    });
+  }
+
   outline(frame, part) {
     const x = part === "right" ? frame.width - frame.side : 0;
     const y =
       part === "bottom" ? frame.height - frame.bottom : part ? frame.top : 0;
+    this.still = shared("p5.motion") === false;
+    const now = this.still ? 0 : Date.now();
+    const w = frame.width - SLAB * 2 - 2;
+    const h = frame.height - SLAB * 2 - 2;
+    const shape = quad(w, h, now, frame);
+    const paint = (path, color, dx = 0, dy = 0) =>
+      window
+        .paint_path(path, color)
+        .absolute()
+        .w(w)
+        .h(h)
+        .left(SLAB + dx - x)
+        .top(SLAB + dy - y);
+    const fill = (shape) => PathBuilder.fill().add_polygon(shape).build();
+    const line = (shape) =>
+      PathBuilder.stroke(3).add_polygon(shape, true).build();
     return div()
       .size_full()
       .relative()
-      .child(
-        window
-          .paint_path(FILL, "#000000cc")
-          .absolute()
-          .w(frame.width - 10)
-          .h(frame.height - 10)
-          .left(3 - x)
-          .top(3 - y),
+      .children(
+        SHADOWS.map((s) =>
+          paint(
+            fill(quad(w, h, this.still ? 0 : now - MORPH_STEP * s.lag, frame)),
+            s.color,
+            s.x,
+            s.y,
+          ),
+        ),
       )
-      .child(
-        window
-          .paint_path(OUTLINE, "#e60012")
-          .absolute()
-          .w(frame.width - 10)
-          .h(frame.height - 10)
-          .left(7 - x)
-          .top(7 - y),
-      )
-      .child(
-        window
-          .paint_path(OUTLINE, "#ffffff")
-          .absolute()
-          .w(frame.width - 10)
-          .h(frame.height - 10)
-          .left(3 - x)
-          .top(3 - y),
-      );
+      .child(paint(fill(shape), "#000000"))
+      .child(paint(line(shape), "#ffffff"));
   }
 
   render() {
