@@ -1170,10 +1170,25 @@ export default class Agents extends View {
             .justify_between()
             .child(
               p5()
-                ? image("mods/p5-agents/title-horizontal.png")
+                ? div()
+                    .relative()
                     .w(150)
                     .h(50)
                     .flex_none()
+                    .child(
+                      image("mods/p5-agents/title-shadow.png")
+                        .absolute()
+                        .top(3)
+                        .left(3)
+                        .size_full(),
+                    )
+                    .child(
+                      image("mods/p5-agents/title-horizontal.png")
+                        .absolute()
+                        .top(0)
+                        .left(0)
+                        .size_full(),
+                    )
                 : div()
                     .text_size(11.5)
                     .font_medium()
