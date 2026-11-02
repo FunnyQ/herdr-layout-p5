@@ -50,7 +50,6 @@ Keep wallpaper visible in the chrome and gutters, with `#0d0d0d` terminal conten
   - The block resizes itself to fit the cards.
 - Tabs: click to select, double-click to rename, drag to reorder, and scroll the wheel to switch. The × on the active tab closes it.
 - Pane headers: hovering shows the split, zoom and close buttons, and clicking focuses the pane.
-- Quick terminal: `` ctrl-` `` or the sidebar's monitor button toggles a centered popup terminal per space. Focus its terminal automatically. Start its first shell in the space's folder. Hide it on a space change, an outside click, the × button or another toggle; keep its process and current directory. Reopen the same shell, or create another after it exits.
 - `ctrl-shift-l` cycles layouts, so the person's own layout stays one key away.
 
 ## Built from
@@ -62,8 +61,6 @@ Keep wallpaper visible in the chrome and gutters, with `#0d0d0d` terminal conten
 - The mods:
   - `p5-tabs`, `p5-pane`, `p5-chrome` and `p5-status` are clones of Herdr 0.1.9's `tabs`, `pane`, `workspace-chrome` and `workspace-status`.
   - `p5-spaces` and `p5-agents` are reworked spaces and agents lists.
-  - `p5-chrome/quick-terminal.js` owns shell discovery, creation and toggling. Store addresses in shared state by machine and space id. Label new shells `p5.quick-space`, launch with `--no-parent` to survive the launching agent, and omit pane labels so the shell stays out of the tab tree.
-  - `p5-quick-terminal` draws an irregular black quadrilateral with a 3px white outline and a red outline offset 4px right and down. Keep the terminal rectangular and inset its content inside the outline. Draw each part of the same full-size path through the top, side strips and bottom strip because layout blocks clip their mods; do not clip terminal text into a polygon. Paint the frame black at 80% opacity and leave the terminal block background unset so panes underneath remain visible. Replace the title bar with the transparent "端末 Terminal" PNG (`title.png`), displayed 196px wide at its original 3:1 ratio at the top left, and keep the × button at the top right. Reserve at least 76px above the terminal for the image. Use a 4:3 layout dialog at 65% window height, capped at 78% window width. Account for zoom when sizing it from `window.viewport_size()` on each open. Let Herdr center it and draw its built-in 35% black backdrop; keep outside-click dismissal enabled. Herdr 0.1.10's `pane.focus {terminal}` cannot focus a terminal in a window overlay, so use a dialog for automatic terminal focus and the backdrop; it does not support dragging or background blur.
 - Drawing:
   - Every shape is a `PathBuilder.fill().add_polygon(...)` with percentage coordinates, drawn by `window.paint_path(path, color)` as an `.absolute().inset_0()` child behind the text.
   - Outlines use `PathBuilder.stroke(2).add_polygon(shape, true)`. The slanted pane top uses `PathBuilder.stroke(4).move_to(...).line_to(...)`.
@@ -129,23 +126,20 @@ Follow these steps to install the layout for someone. Run them from a clone of t
    cp ~/.config/herdr-app/mods/p5-agents/sp-turns.js ~/.config/herdr-app/mods/p5-agents/sp.js
    ```
 
-4. Merge `keys/persona5.json` into `~/.config/herdr-app/keys.json`. Preserve existing sections and bindings; add the shortcut under `"layout:persona5"`. If that exact binding already has another action, leave it and report the conflict; the toolbar button remains available.
-5. Check each mod. Without `sp.js`, `p5-agents` fails to load.
+4. Check each mod. Without `sp.js`, `p5-agents` fails to load.
 
    ```sh
    for m in ~/.config/herdr-app/mods/p5-*; do herdr-app check "$m"; done
    ```
 
-6. Tell the person to switch to the layout from the layout picker, or to press `ctrl-shift-l` until Persona 5 shows.
-7. If their Claude plan uses the default 5-minute prompt cache, set `CACHE_TTL` in `~/.config/herdr-app/mods/p5-agents/main.js` to `5 * 60000`.
-
-To replace an existing shell pane with Quick Terminal, focus it and run `herdr-app do p5-chrome.adopt-quick-terminal`. Park the terminal instead of closing its pane with `pane.close`, which would terminate it. Leave other panes untouched.
+5. Tell the person to switch to the layout from the layout picker, or to press `ctrl-shift-l` until Persona 5 shows.
+6. If their Claude plan uses the default 5-minute prompt cache, set `CACHE_TTL` in `~/.config/herdr-app/mods/p5-agents/main.js` to `5 * 60000`.
 
 Copy files rather than symlinking them. Herdr doesn't notice edits behind a symlinked mod or layout, and a symlinked `persona5.svg` shows an empty card in the layout picker.
 
 ## Done when
 
-- `herdr-app check mods/<name>` passes for all seven `p5-*` mods.
+- `herdr-app check mods/<name>` passes for all six `p5-*` mods.
 - `herdr-app status` shows `"errors": []` after `layout.switch {"name":"persona5"}`.
 - A screenshot shows:
   - striped red bars with no divider lines
@@ -153,6 +147,5 @@ Copy files rather than symlinking them. Herdr doesn't notice edits behind a syml
   - a slanted top on every pane, with a white line on the focused one
 - An agent that has never run a turn shows `HP 0 / SP 100`.
 - `bun test` passes.
-- Toggle Quick Terminal twice and reopen it; confirm its shell pid and current directory survive. Switch spaces and confirm each gets a separate shell. Confirm the popup is centered and matches the pane headers. Check keyboard input reaches the floating terminal after opening it.
 - With `sp-context.js`, a Claude Code agent's SP is within 2 of `100 - /context`'s used percent of its window.
 - Blocking an agent shows the yellow `NEEDS YOU!` chip in the status bar.
