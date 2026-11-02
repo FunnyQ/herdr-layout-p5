@@ -38,11 +38,14 @@ const morphed = (now) => [
   [`${4 + 4 * pull(now, 6)}%`, `${100 - 12 * pull(now, 7)}%`],
 ];
 
+// The selected slab: black with a white edge, a cyan and a magenta shadow lagging behind it.
+const SHADOWS = [
+  { color: "#ff1a8cb3", lag: 6, x: 10, y: 6 },
+  { color: "#00e5ffb3", lag: 3, x: -8, y: -5 },
+];
+
 class Morph extends View {
-  init(props, cx) {
-    this.fill = props.fill;
-    this.edge = props.edge;
-    this.lag = props.lag;
+  init(_props, cx) {
     cx.timer.every(MORPH_STEP, (cx) => {
       if (shared("p5.motion") !== false || !this.still) cx.notify();
     });
@@ -50,19 +53,21 @@ class Morph extends View {
 
   render() {
     this.still = shared("p5.motion") === false;
-    const shape = morphed(this.still ? 0 : Date.now() - this.lag);
+    const now = this.still ? 0 : Date.now();
+    const shape = morphed(now);
+    const fill = (shape, color) => globalThis.window.paint_path(PathBuilder.fill().add_polygon(shape).build(), color).absolute().inset_0();
     return div()
       .size_full()
       .relative()
-      .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(shape).build(), this.fill).absolute().inset_0())
-      .when(Boolean(this.edge), (el) => el.child(globalThis.window.paint_path(PathBuilder.stroke(2).add_polygon(shape, true).build(), this.edge).absolute().inset_0()));
+      .children(SHADOWS.map((s) => div().absolute().left(s.x).top(s.y).size_full().child(fill(morphed(this.still ? 0 : now - MORPH_STEP * s.lag), s.color))))
+      .child(fill(shape, "#000000"))
+      .child(globalThis.window.paint_path(PathBuilder.stroke(2).add_polygon(shape, true).build(), "#ffffff").absolute().inset_0());
   }
 }
 
 export default class Tabs extends View {
   init(_props, cx) {
-    this.morph = cx.new(Morph, { fill: "#000000", edge: "#ffffff", lag: 0 });
-    this.shadow = cx.new(Morph, { fill: "#e60012", edge: null, lag: MORPH_STEP * 6 });
+    this.morph = cx.new(Morph, {});
     this.pressed = null;
     this.panels = JSON.parse(localStorage.getItem("panels") ?? "{}");
   }
@@ -108,7 +113,6 @@ export default class Tabs extends View {
       return h_flex().id(`tab-${c.id}`).relative().h(30).px(16).gap(6).items_center().flex_none().text_size(12.5).font_weight(700).italic()
         .text_color(c.active ? "#ffffff" : "#ffb8bd")
         .when(c.active, el => el.h(46).px(26).py(4).text_size(14)
-          .child(div().absolute().top(0).bottom(-4).left(2).right(-10).child(this.shadow))
           .child(div().absolute().top(-2).bottom(2).left(-4).right(-4).child(this.morph)))
         .when(!c.active, el => el.h(26).text_size(12).child(globalThis.window.paint_path(SLANT, "#000000").absolute().top(2).left(2).w_full().h_full()).child(slant("#6a0009")))
         .hover(s => s.text_color("#ffffff"))
@@ -146,7 +150,7 @@ export default class Tabs extends View {
     return paintTear(h_flex().size_full().min_w(0).px(10).pl(lightsPadding).gap(3).items_center().relative(), barTear(root, "tabs", globalThis.window.viewport_size().width, "bottom"), t.chrome)
       .on_mouse_up("left", () => { this.pressed = null; })
       .on_scroll_wheel(e => { if (Math.abs(e.delta.y) >= 1) run(e.delta.y > 0 ? "tab.prev" : "tab.next"); })
-      .child(h_flex().id("tab-scroll").flex_1().min_w(0).h_full().pl(6).pr(8).items_center().gap(8).overflow_x_scrollbar().children(shown.map(item)))
+      .child(h_flex().id("tab-scroll").flex_1().min_w(0).h_full().pl(18).pr(8).items_center().gap(8).overflow_x_scrollbar().children(shown.map(item)))
       .child(button("tab-new", svg("mods/workspace-chrome/plus.svg").size(14), () => openOverlay({ mod: "new-menu", kind: "popup", width: 250, height: 512 })))
       .when(enabled.includes("files"), el => el.child(panelButton("files", "Files", "mods/files/file.svg")))
       .when(enabled.includes("changes"), el => el.child(panelButton("changes", "Changes", "mods/changes/changes.svg")))

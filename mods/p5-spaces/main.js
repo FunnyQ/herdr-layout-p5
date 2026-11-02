@@ -123,11 +123,14 @@ const morphed = (now) => [
   [`${4 + 2 * pull(now, 6)}%`, `${100 - 8 * pull(now, 7)}%`],
 ];
 
+// The selected slab: black with a white edge, a cyan and a magenta shadow lagging behind it.
+const SHADOWS = [
+  { color: "#ff1a8cb3", lag: 6, x: 10, y: 6 },
+  { color: "#00e5ffb3", lag: 3, x: -8, y: -5 },
+];
+
 class Morph extends View {
-  init(props, cx) {
-    this.fill = props.fill;
-    this.edge = props.edge;
-    this.lag = props.lag;
+  init(_props, cx) {
     cx.timer.every(MORPH_STEP, (cx) => {
       if (shared("p5.motion") !== false || !this.still) cx.notify();
     });
@@ -135,38 +138,47 @@ class Morph extends View {
 
   render() {
     this.still = shared("p5.motion") === false;
-    const shape = morphed(this.still ? 0 : Date.now() - this.lag);
+    const now = this.still ? 0 : Date.now();
+    const shape = morphed(now);
+    const fill = (shape, color) =>
+      globalThis.window
+        .paint_path(PathBuilder.fill().add_polygon(shape).build(), color)
+        .absolute()
+        .inset_0();
     return div()
       .size_full()
       .relative()
+      .children(
+        SHADOWS.map((s) =>
+          div()
+            .absolute()
+            .left(s.x)
+            .top(s.y)
+            .size_full()
+            .child(
+              fill(
+                morphed(this.still ? 0 : now - MORPH_STEP * s.lag),
+                s.color,
+              ),
+            ),
+        ),
+      )
+      .child(fill(shape, "#000000"))
       .child(
         globalThis.window
-          .paint_path(PathBuilder.fill().add_polygon(shape).build(), this.fill)
+          .paint_path(
+            PathBuilder.stroke(2).add_polygon(shape, true).build(),
+            "#ffffff",
+          )
           .absolute()
           .inset_0(),
-      )
-      .when(Boolean(this.edge), (el) =>
-        el.child(
-          globalThis.window
-            .paint_path(
-              PathBuilder.stroke(2).add_polygon(shape, true).build(),
-              this.edge,
-            )
-            .absolute()
-            .inset_0(),
-        ),
       );
   }
 }
 
 export default class Spaces extends View {
   init(_props, cx) {
-    this.morph = cx.new(Morph, { fill: "#000000", edge: "#ffffff", lag: 0 });
-    this.shadow = cx.new(Morph, {
-      fill: "#e60012",
-      edge: null,
-      lag: MORPH_STEP * 6,
-    });
+    this.morph = cx.new(Morph, {});
     this.git = {}; // where() -> { name, branch, ahead, behind, repo, linked }, null: not a repo
     this.checked = {}; // where() -> when it was last looked at
     this.unsure = new Set(); // where()s git couldn't answer for (a machine away)
@@ -619,17 +631,7 @@ export default class Spaces extends View {
       .rounded(8)
       .when(on && !p5(), (el) => el.bg(t.selected))
       .when(on && p5(), (el) =>
-        el
-          .child(
-            div()
-              .absolute()
-              .top(4)
-              .left(6)
-              .w_full()
-              .h_full()
-              .child(this.shadow),
-          )
-          .child(div().absolute().inset_0().child(this.morph)),
+        el.child(div().absolute().inset_0().child(this.morph)),
       )
       .when(!on, (el) => el.hover((s) => s.bg(t.hover)))
       .when(
