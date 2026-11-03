@@ -3,4 +3,10 @@ jsconfig.json
 *.error
 .cockpit/
 mods/p5-agents/sp.js
-assets/
+assets/*
+!assets/title-sprite.png
+!assets/title-sprite.json
+!assets/title-sources/
+!assets/modal-titles-v3_*.png
+!assets/modal-titles-v3.prompt.txt
+__pycache__/

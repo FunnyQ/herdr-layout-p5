@@ -20,13 +20,29 @@ const depthAt = (at, amp, lean) => {
   );
 };
 
-// [position from `from`, depth] pairs from `from` to `to`, with a vertex at each of `stops`.
+// The paper rim's width: mostly thin, now and then a wide strip of torn-off fibre.
+const RIM_MIN = 0.5;
+const RIM_MAX = 8;
+const rimAt = (at) => {
+  const k = Math.round(at / STEP);
+  const swing = Math.min(1, 0.75 * smooth(at, 48, 21) + 0.35 * noise(k * 5 + 11));
+  return RIM_MIN + (RIM_MAX - RIM_MIN) * swing ** 2;
+};
+
+// The paper's shade: patches from nearly clear to nearly solid, in SHADES steps.
+const SHADES = 5;
+const shadeAt = (at) => {
+  const k = Math.round(at / STEP);
+  return Math.min(SHADES - 1, Math.floor((0.7 * smooth(at, 40, 37) + 0.3 * noise(k * 3 + 29)) * SHADES));
+};
+
+// [position from `from`, depth, rim width, shade] quadruples from `from` to `to`, with a vertex at each of `stops`.
 // Depths stay within `amp + lean`.
 export function tearLine(from, to, amp, stops = [], lean = 0) {
   const at = new Set([from, to, ...stops.filter((s) => s > from && s < to)]);
   for (let g = (Math.floor(from / STEP) + 1) * STEP; g < to; g += STEP)
     at.add(g);
-  return [...at].sort((a, b) => a - b).map((g) => [g - from, depthAt(g, amp, lean)]);
+  return [...at].sort((a, b) => a - b).map((g) => [g - from, depthAt(g, amp, lean), rimAt(g), shadeAt(g)]);
 }
 
 // A block's top and height along the window's height.
@@ -55,14 +71,18 @@ const AMP = 10;
 const BAR_AMP = 7;
 const LEAN = 12;
 const BAR_LEAN = 5;
-const RIM = 1.5;
-// The paper showing at a tear: warm and half see-through, so the rim reads as fibre, not an outline.
-export const PAPER = "#f2e6d699";
+// The paper showing at a tear: warm and see-through, so the rim reads as fibre, not an outline.
+const PAPER = "#f2e6d6";
+const ALPHA_MIN = 0.58;
+const ALPHA_MAX = 0.98;
+const paper = (shade) => {
+  const alpha = ALPHA_MIN + ((ALPHA_MAX - ALPHA_MIN) * shade) / (SHADES - 1);
+  return PAPER + Math.round(alpha * 255).toString(16).padStart(2, "0");
+};
 const RAMP = 32;
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
-// A block's torn fill and paper rim. `line` holds [position, fill depth, paper depth]
-// along the torn `side`; `thickness` is the block's size across it.
+// `line` holds [position, fill depth, paper depth, shade] along the torn `side`.
 export function tornShape(line, length, thickness, side) {
   const at = {
     right: (p, d) => [thickness - d, p],
@@ -71,15 +91,44 @@ export function tornShape(line, length, thickness, side) {
   }[side];
   const far = { right: [[0, 0], [0, length]], bottom: [[0, 0], [length, 0]], top: [[0, thickness], [length, thickness]] }[side];
   const fill = line.map(([p, f]) => at(p, f));
+  // Cuts only move forward, so one cursor walks the line once.
+  let seg = 0;
+  const paperAt = (q) => {
+    while (seg < line.length - 2 && line[seg + 1][0] < q) seg++;
+    const [[p0, , e0], [p1, , e1]] = [line[seg], line[seg + 1]];
+    return p1 === p0 ? e0 : e0 + ((e1 - e0) * (q - p0)) / (p1 - p0);
+  };
+  const rims = new Map();
+  let cut = line[0][0];
+  let cutPoint = at(cut, line[0][2]);
+  let k = 0;
+  for (let a = 0; a < line.length - 1; ) {
+    let b = a + 1;
+    while (b < line.length - 1 && line[b][3] === line[a][3]) b++;
+    // Shade patches meet at 45 degrees: the cut leans back along the edge by the rim's width.
+    const [pb, fb, eb] = line[b];
+    const next = b === line.length - 1 ? pb : Math.max(cut, pb - (fb - eb));
+    const nextPoint = at(next, paperAt(next));
+    const polygon = [nextPoint, cutPoint];
+    while (k < line.length && line[k][0] <= cut) k++;
+    for (; k < line.length && line[k][0] < next; k++) polygon.splice(1, 0, at(line[k][0], line[k][2]));
+    for (let i = b; i >= a; i--) polygon.unshift(at(line[i][0], line[i][1]));
+    const color = paper(line[a][3]);
+    if (!rims.has(color)) rims.set(color, []);
+    rims.get(color).push(polygon);
+    cut = next;
+    cutPoint = nextPoint;
+    a = b;
+  }
   return {
     fill: [far[0], ...fill, far[1]],
-    rim: [...fill, ...[...line].reverse().map(([p, , e]) => at(p, e))],
+    rims: [...rims].map(([color, polygons]) => ({ color, polygons })),
   };
 }
 
-// [position, fill depth, paper depth] along a tear, scaled by `calm` (0 flush, 1 full).
+// [position, fill depth, paper depth, shade] along a tear, scaled by `calm` (0 flush, 1 full).
 const depths = (line, calm) =>
-  line.map(([p, d]) => [p, (d + RIM) * calm(p), d * calm(p)]);
+  line.map(([p, d, r, s]) => [p, (d + r) * calm(p), d * calm(p), s]);
 
 // A sidebar block's torn fill and paper rim; null for a block outside the sidebar.
 // The tear calms to flush beside the tab bar and the status bar, so they meet the sidebar without a gap.

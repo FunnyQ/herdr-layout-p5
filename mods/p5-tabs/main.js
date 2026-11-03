@@ -1,6 +1,7 @@
 import { View, div, svg, image, PathBuilder, Background } from "gpui-kit";
 import { h_flex } from "gpui-base";
-import { barTear, PAPER, noise } from "./torn.js";
+import { barTear, noise } from "./torn.js";
+import { closeRequest } from "./confirm.js";
 import { spaces, panes, run, openOverlay, theme, window as appWindow, shared, layout, settings } from "herdr";
 
 const STRIPES_FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
@@ -13,7 +14,7 @@ function paintTear(el, tear, color) {
   return el
     .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
     .child(stripes(fill))
-    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER).absolute().inset_0());
+    .children(tear.rims.map(({ color, polygons }) => globalThis.window.paint_path(polygons.reduce((b, p) => b.add_polygon(p), PathBuilder.fill()).build(), color).absolute().inset_0()));
 }
 const SLANT = PathBuilder.fill().add_polygon([["8%", 0], ["100%", 0], ["92%", "100%"], [0, "100%"]]).build();
 const slant = (color) => globalThis.window.paint_path(SLANT, color).absolute().inset_0();
@@ -122,14 +123,19 @@ export default class Tabs extends View {
           if (from !== null && from !== i) run("tab.move", { id: shown[from].id, index: space.tabs.findIndex(x => x.id === c.id) + 1 });
           else run("tab.select", { id: c.id });
         })
-        .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); openOverlay({ mod: "menu", kind: "popup", width: 200, props: { tab: "tab", target: { id: c.id, space: space.id } } }); })
+        .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); openOverlay({ mod: "p5-menu", kind: "popup", width: 200, props: { tab: "tab", target: { id: c.id, space: space.id } } }); })
         .when(Boolean(program?.icon), el => el.child(program.tint ? svg(program.icon).size(14).text_color(t.muted) : image(program.icon).size(14)))
         .child(div().max_w(170).truncate().child((c.zoomed ? `${name} Z` : name).toUpperCase()))
         .when(c.status === "working", el => el.child(svg("mods/workspace-chrome/spinner.svg").size(12).flex_none().text_color(t.working).spin(1800)))
         .when(c.status === "blocked" || c.status === "done", el => el.child(div().size(6).rounded(3).bg(t[c.status])))
-        .when(c.active, el => el.child(div().id(`close-${c.id}`).text_color("#ffffff").on_mouse_down("left", stop).on_click((_e, cx) => { cx.stop_propagation(); run("tab.close", { id: c.id }); }).child(svg("mods/pane/close.svg").size(12))));
+        .when(c.active, el => el.child(div().id(`close-${c.id}`).text_color("#ffffff").on_mouse_down("left", stop).on_click((_e, cx) => {
+          cx.stop_propagation();
+          const request = closeRequest(spaces(), panes(), "tab.close", c.id);
+          if (request) openOverlay({ mod: "p5-confirm", kind: "dialog", modal: true, frame: "none", width: 560, height: 360, props: request });
+          else run("tab.close", { id: c.id });
+        }).child(svg("mods/pane/close.svg").size(12))));
     };
-    const root = layout(), sidebar = find(root, "sidebar"), w = appWindow();
+    const root = layout() ?? {}, sidebar = find(root, "sidebar"), w = appWindow();
     // Old saved rails and a dragged-narrow sidebar can be smaller than the window buttons.
     const lightsPadding = w?.platform === "macos" && w.titlebar === "none" && !w.fullscreen && root?.traffic_lights
       ? Math.max(10, (root.traffic_lights[0] + 64) / settings().zoom - (sidebar?.hidden ? 0 : sidebar?.size?.px ?? 0))

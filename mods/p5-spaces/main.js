@@ -3,9 +3,10 @@
 // its first terminal is in now, only where unusual: branch, ahead/behind. Agent state lives in the agents list, not here. Click to
 // switch, right-click for its menu, drag to reorder.
 
-import { View, div, image, svg, PathBuilder, Background } from "gpui-kit";
+import { View, div, svg, PathBuilder, Background } from "gpui-kit";
+import { sprite } from "./sprite.js";
 import { v_flex, h_flex } from "gpui-base";
-import { sidebarTear, PAPER, noise } from "./torn.js";
+import { sidebarTear, noise } from "./torn.js";
 import {
   agents,
   spaces,
@@ -58,12 +59,7 @@ function paintTear(el, tear, color) {
   return el
     .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
     .child(stripes(fill))
-    .child(
-      globalThis.window
-        .paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER)
-        .absolute()
-        .inset_0(),
-    );
+    .children(tear.rims.map(({ color, polygons }) => globalThis.window.paint_path(polygons.reduce((b, p) => b.add_polygon(p), PathBuilder.fill()).build(), color).absolute().inset_0()));
 }
 const p5 = () => true;
 
@@ -391,7 +387,7 @@ export default class Spaces extends View {
   menu(w) {
     // A popup is as tall as its items; height is only the most.
     openOverlay({
-      mod: "menu",
+      mod: "p5-menu",
       kind: "popup",
       width: 200,
       height: 260,
@@ -783,7 +779,7 @@ export default class Spaces extends View {
         paintTear(
           el,
           sidebarTear(
-            layout(),
+            layout() ?? {},
             "spaces",
             globalThis.window.viewport_size().height,
           ),
@@ -809,18 +805,16 @@ export default class Spaces extends View {
                     .h(50)
                     .flex_none()
                     .child(
-                      image("mods/p5-spaces/title-shadow.png")
+                      sprite("spaces-shadow", 145, 50)
                         .absolute()
                         .top(3)
-                        .left(3)
-                        .size_full(),
+                        .left(3),
                     )
                     .child(
-                      image("mods/p5-spaces/title-horizontal.png")
+                      sprite("spaces", 145, 50)
                         .absolute()
                         .top(0)
-                        .left(0)
-                        .size_full(),
+                        .left(0),
                     )
                 : "Spaces",
             ),

@@ -2,8 +2,9 @@
 // A viewed done agent stays in Done until left.
 
 import { PathBuilder, Background, View, div, image, svg } from "gpui-kit";
+import { sprite } from "./sprite.js";
 import { v_flex, h_flex } from "gpui-base";
-import { sidebarTear, PAPER, noise } from "./torn.js";
+import { sidebarTear, noise } from "./torn.js";
 import {
   agents,
   terminals,
@@ -59,12 +60,7 @@ function paintTear(el, tear, color) {
   return el
     .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
     .child(stripes(fill))
-    .child(
-      globalThis.window
-        .paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER)
-        .absolute()
-        .inset_0(),
-    );
+    .children(tear.rims.map(({ color, polygons }) => globalThis.window.paint_path(polygons.reduce((b, p) => b.add_polygon(p), PathBuilder.fill()).build(), color).absolute().inset_0()));
 }
 // prompt cache lifetime after the last turn; 5 min on default Claude Code, 1 h on plans with the extended TTL
 const CACHE_TTL = 60 * 60000;
@@ -803,7 +799,7 @@ export default class Agents extends View {
                 .right(-8)
                 .w(95)
                 .h(38)
-                .child(image("mods/p5-agents/selected.png").size_full())
+                .child(sprite("selected", 95, 38))
                 .tooltip("Collapse selected agent")
                 .on_click((_e, cx) => {
                   cx.stop_propagation();
@@ -1153,7 +1149,7 @@ export default class Agents extends View {
         paintTear(
           el,
           sidebarTear(
-            layout(),
+            layout() ?? {},
             "agents",
             globalThis.window.viewport_size().height,
           ),
@@ -1181,18 +1177,16 @@ export default class Agents extends View {
                     .h(50)
                     .flex_none()
                     .child(
-                      image("mods/p5-agents/title-shadow.png")
+                      sprite("agents-shadow", 150, 50)
                         .absolute()
                         .top(3)
-                        .left(3)
-                        .size_full(),
+                        .left(3),
                     )
                     .child(
-                      image("mods/p5-agents/title-horizontal.png")
+                      sprite("agents", 150, 50)
                         .absolute()
                         .top(0)
-                        .left(0)
-                        .size_full(),
+                        .left(0),
                     )
                 : div()
                     .text_size(11.5)
