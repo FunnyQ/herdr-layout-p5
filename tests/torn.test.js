@@ -58,6 +58,16 @@ test("neighbouring stretches meet at the same depth", () => {
   expect(tearLine(0, 46, 6).at(-1)[1]).toBe(tearLine(46, 300, 6)[0][1]);
 });
 
+test("the paper rim's width swings widely along the tear and matches across stretches", () => {
+  const rims = tearLine(0, 2000, 6).map(([, , r]) => r);
+  for (const r of rims) {
+    expect(r).toBeGreaterThanOrEqual(0.5);
+    expect(r).toBeLessThanOrEqual(8);
+  }
+  expect(Math.max(...rims) - Math.min(...rims)).toBeGreaterThan(4);
+  expect(tearLine(0, 46, 6).at(-1)[2]).toBe(tearLine(46, 300, 6)[0][2]);
+});
+
 test("spanOf finds a block's top and height in nested columns", () => {
   expect(spanOf(TREE, "brand", 1000)).toEqual({ top: 0, height: 46 });
   expect(spanOf(TREE, "spaces", 1000)).toEqual({ top: 46, height: 662 });
@@ -75,15 +85,102 @@ test("tornShape tears the named edge and closes the far side", () => {
 });
 
 test("tornShape's rim is the band between the torn fill and the tear itself", () => {
-  const line = [[0, 2, 0], [50, 6, 4]];
-  expect(tornShape(line, 50, 268, "right").rim).toEqual([[266, 0], [262, 50], [264, 50], [268, 0]]);
-  expect(tornShape(line, 50, 30, "top").rim).toEqual([[0, 2], [50, 6], [50, 4], [0, 0]]);
+  const line = [
+    [0, 2, 0, 1],
+    [50, 6, 4, 1],
+  ];
+  expect(tornShape(line, 50, 268, "right").rims[0].polygons).toEqual([
+    [
+      [266, 0],
+      [262, 50],
+      [264, 50],
+      [268, 0],
+    ],
+  ]);
+  expect(tornShape(line, 50, 30, "top").rims[0].polygons).toEqual([
+    [
+      [0, 2],
+      [50, 6],
+      [50, 4],
+      [0, 0],
+    ],
+  ]);
+});
+
+test("tornShape splits the rim into one run per stretch of equal shade, cut at 45 degrees, each in its own see-through paper", () => {
+  const line = [
+    [0, 4, 0, 0],
+    [10, 4, 0, 0],
+    [20, 4, 0, 3],
+    [30, 4, 0, 0],
+    [40, 4, 0, 0],
+  ];
+  const { rims } = tornShape(line, 40, 30, "top");
+  const shade0 = rims.find((r) => r.polygons.length === 2);
+  const shade3 = rims.find((r) => r.polygons.length === 1);
+  expect(shade0.polygons).toEqual([
+    [
+      [0, 4],
+      [10, 4],
+      [20, 4],
+      [16, 0],
+      [10, 0],
+      [0, 0],
+    ],
+    [
+      [30, 4],
+      [40, 4],
+      [40, 0],
+      [30, 0],
+      [26, 0],
+    ],
+  ]);
+  expect(shade3.polygons).toEqual([
+    [
+      [20, 4],
+      [30, 4],
+      [26, 0],
+      [20, 0],
+      [16, 0],
+    ],
+  ]);
+  expect(shade0.color).toMatch(/^#f2e6d6[0-9a-f]{2}$/);
+  expect(shade3.color).not.toBe(shade0.color);
+});
+
+test("a 45 degree cut interpolates the paper edge between vertices", () => {
+  const line = [
+    [0, 3, 1, 0],
+    [10, 3, 1, 0],
+    [20, 3, 1, 2],
+    [30, 3, 1, 2],
+  ];
+  const [first] = tornShape(line, 30, 50, "right").rims.find(
+    (r) => r.polygons[0][0][1] === 0,
+  ).polygons;
+  expect(first).toEqual([
+    [47, 0],
+    [47, 10],
+    [47, 20],
+    [49, 18],
+    [49, 10],
+    [49, 0],
+  ]);
+});
+
+test("the paper's shade varies along the tear and matches across stretches", () => {
+  const shades = new Set(tearLine(0, 2000, 6).map(([, , , s]) => s));
+  expect(shades.size).toBeGreaterThanOrEqual(4);
+  for (const s of shades)
+    expect(Number.isInteger(s) && s >= 0 && s < 5).toBe(true);
+  expect(tearLine(0, 46, 6).at(-1)[3]).toBe(tearLine(46, 300, 6)[0][3]);
 });
 
 test("sidebarTear stays flush beside the tab bar and the status bar", () => {
   const brand = sidebarTear(TREE, "brand", 1000);
   for (const [x] of brand.fill.slice(1, -1)) expect(x).toBe(268);
-  for (const [x] of brand.rim) expect(x).toBe(268);
+  for (const [x] of brand.rims.flatMap((r) => r.polygons.flat()))
+    expect(x).toBe(268);
   const footer = sidebarTear(TREE, "footer", 1000);
   for (const [x, y] of footer.fill.slice(1, -1))
     if (908 + y >= 970) expect(x).toBe(268);
@@ -100,7 +197,11 @@ test("barTear tears the tab bar's bottom and the status bar's top, flush where t
   const status = barTear(TREE, "status", 1500, "top");
   expect(status.fill[1]).toEqual([0, 0]);
   expect(status.fill.at(-1)).toEqual([1232, 30]);
-  expect(status.rim.every(([, y]) => y >= 0 && y <= 30)).toBe(true);
+  expect(
+    status.rims
+      .flatMap((r) => r.polygons.flat())
+      .every(([, y]) => y >= 0 && y <= 30),
+  ).toBe(true);
 });
 
 test("sidebarTear gives up on a block outside the sidebar", () => {

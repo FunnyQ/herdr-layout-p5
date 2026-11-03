@@ -5,16 +5,45 @@
 // this pane. Props from the app: { pane, terminal }. Click: focus the pane.
 
 import { View, div, svg, image, PathBuilder, Background } from "gpui-kit";
-import { tearLine } from "./torn.js";
+import { tearLine, tornShape } from "./torn.js";
 
 // The header's top edge: a slant down to the left, torn. Laid out over SPAN units stretched to the pane's width.
 const HEADER_HEIGHT = 36; // layouts/persona5.json, pane.header.height
 const SLANT_DROP = 0.2 * HEADER_HEIGHT;
 const SPAN = 600;
-const TEAR = tearLine(0, SPAN, 4, [], 3).map(([x, d]) => [`${(x / SPAN) * 100}%`, SLANT_DROP * (1 - x / SPAN) + d]);
-const SLAB = PathBuilder.fill().add_polygon([...TEAR, ["100%", "100%"], [0, "100%"]]).build();
-const SLAB_TOP = PathBuilder.stroke(2).add_polygon(TEAR, false).build();
-const TAG_SHAPE = [[0, "14%"], ["96%", 0], ["100%", "86%"], ["3%", "100%"]];
+const LINE = tearLine(0, SPAN, 4, [], 3);
+const TEAR = LINE.map(([x, d]) => [
+  `${(x / SPAN) * 100}%`,
+  SLANT_DROP * (1 - x / SPAN) + d,
+]);
+const SLAB = PathBuilder.fill()
+  .add_polygon([...TEAR, ["100%", "100%"], [0, "100%"]])
+  .build();
+// The focused header looks like the tab bar: its fill starts a rim's width below the tear, with paper showing in between.
+// Laid out in SPAN units, so the shade cuts are 45 degrees only on a 600px pane, flatter on a wider one; PaneInfo has no width.
+const FOCUSED = tornShape(
+  LINE.map(([x, , r, shade], i) => [x, TEAR[i][1] + r, TEAR[i][1], shade]),
+  SPAN,
+  HEADER_HEIGHT,
+  "top",
+);
+const stretch = (polygon) =>
+  polygon.map(([x, y]) => [`${(x / SPAN) * 100}%`, y]);
+const FOCUSED_SLAB = PathBuilder.fill()
+  .add_polygon(stretch(FOCUSED.fill))
+  .build();
+const SLAB_RIMS = FOCUSED.rims.map(({ color, polygons }) => [
+  polygons
+    .reduce((b, p) => b.add_polygon(stretch(p)), PathBuilder.fill())
+    .build(),
+  color,
+]);
+const TAG_SHAPE = [
+  [0, "14%"],
+  ["96%", 0],
+  ["100%", "86%"],
+  ["3%", "100%"],
+];
 const TAG = PathBuilder.fill().add_polygon(TAG_SHAPE).build();
 const SLANT = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["88%", "100%"], [0, "100%"]]).build();
 import { h_flex } from "gpui-base";
@@ -76,9 +105,36 @@ export default class Pane extends View {
       .gap(8)
       .items_center()
       .relative()
-      .child(window.paint_path(SLAB, p.focused ? "#2a0b10cc" : "#1b1115cc").absolute().inset_0())
-      .child(window.paint_path(SLAB, Background.pattern_slash("#00000018", 3, 14)).absolute().inset_0())
-      .when(p.focused, el => el.child(window.paint_path(SLAB_TOP, "#e60012").absolute().top(3).left(0).right(0).bottom(-3)).child(window.paint_path(SLAB_TOP, "#ffffff").absolute().inset_0()))
+      .when(p.focused, (el) =>
+        el
+          .child(
+            window.paint_path(FOCUSED_SLAB, "#0d0d0def").absolute().inset_0(),
+          )
+          .child(
+            window
+              .paint_path(
+                FOCUSED_SLAB,
+                Background.pattern_slash("#00000020", 3, 14),
+              )
+              .absolute()
+              .inset_0(),
+          )
+          .children(
+            SLAB_RIMS.map(([rim, color]) =>
+              window.paint_path(rim, color).absolute().inset_0(),
+            ),
+          ),
+      )
+      .when(!p.focused, (el) =>
+        el
+          .child(window.paint_path(SLAB, "#0d0d0def").absolute().inset_0())
+          .child(
+            window
+              .paint_path(SLAB, Background.pattern_slash("#00000018", 3, 14))
+              .absolute()
+              .inset_0(),
+          ),
+      )
       .text_size(12)
       .on_hover((hovered, cx) => { this.hovered = hovered; cx.notify(); })
       .on_click(() => run("pane.focus", { pane }))

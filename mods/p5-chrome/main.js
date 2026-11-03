@@ -1,7 +1,7 @@
 import { View, div, svg, PathBuilder, Background } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
 import { theme, run, props, window, shared, setShared, updates, layout } from "herdr";
-import { sidebarTear, PAPER } from "./torn.js";
+import { sidebarTear } from "./torn.js";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -35,7 +35,7 @@ function paintTear(el, tear, color) {
   return el
     .child(globalThis.window.paint_path(fill, color).absolute().inset_0())
     .child(stripes(fill))
-    .child(globalThis.window.paint_path(PathBuilder.fill().add_polygon(tear.rim).build(), PAPER).absolute().inset_0());
+    .children(tear.rims.map(({ color, polygons }) => globalThis.window.paint_path(polygons.reduce((b, p) => b.add_polygon(p), PathBuilder.fill()).build(), color).absolute().inset_0()));
 }
 
 export default class WorkspaceChrome extends View {
@@ -52,17 +52,17 @@ export default class WorkspaceChrome extends View {
         .text_color(dim ? t.dim : t.muted).hover(s => s.bg(t.hover).text_color(t.foreground)).cursor_pointer()
         .on_click(action).child(svg(`mods/workspace-chrome/${icon}.svg`).size(14))
         .when(!collapsed, el => el.child(label.toUpperCase()));
-      const tear = sidebarTear(layout(), "sidebar-footer", globalThis.window.viewport_size().height);
+      const tear = sidebarTear(layout() ?? {}, "sidebar-footer", globalThis.window.viewport_size().height);
       const ink = tear ? PathBuilder.fill().add_polygon([[0, "22%"], ...tear.fill.slice(1)]).build() : FOOTER;
       return paintTear(v_flex().size_full().relative(), tear, t.chrome).child(globalThis.window.paint_path(ink, "#000000").absolute().inset_0()).px(8).pt(26).pb(10).text_size(13)
         .child(row("settings", "settings", "Settings", false, () => run("app.settings"))
           .when(Boolean(updates().app.ready), el => el.child(div().size(6).rounded_full().bg("#ffffff"))))
         .child(row("machine", "plus", "Add machine", true, () => run("mod.open", { name: "machine-add" })));
     }
-    return paintTear(h_flex().size_full().relative(), sidebarTear(layout(), "brand", globalThis.window.viewport_size().height), t.chrome).pl(collapsed ? 6 : 14).pr(10).gap(4).items_center().text_size(13.5)
+    return paintTear(h_flex().size_full().relative(), sidebarTear(layout() ?? {}, "brand", globalThis.window.viewport_size().height), t.chrome).pl(collapsed ? 6 : 14).pr(10).gap(4).items_center().text_size(13.5)
       .when(window()?.platform === "macos" && !collapsed, el => el.pl(76))
       .when(!collapsed, el => el.child(div().flex_1()))
-      .when(!collapsed, el => el.child(this.button("search", svg("mods/workspace-chrome/search.svg").size(15), () => run("mod.open", { name: "picker" }))))
+      .when(!collapsed, el => el.child(this.button("search", svg("mods/workspace-chrome/search.svg").size(15), () => run("mod.open", { name: "p5-picker" }))))
       // On the macOS rail the traffic lights fill the row; the agents list's » unfolds it.
       .when(!(collapsed && window()?.platform === "macos"), el => el.child(this.button("sidebar-toggle", svg("mods/workspace-chrome/sidebar.svg").size(15), toggleSidebar)));
   }
