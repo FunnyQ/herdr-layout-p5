@@ -1,0 +1,8 @@
+{
+  "place": "none",
+  "overlay": { "kind": "dialog", "width": 560, "height": 360, "frame": "none", "modal": true },
+  "cloned_from": {
+    "name": "confirm",
+    "version": "0.1.12"
+  }
+}

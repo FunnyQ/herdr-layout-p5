@@ -11,12 +11,12 @@ Keep wallpaper visible in the chrome and gutters, with `#0d0d0d` terminal conten
 - **Window background** (behind every bar and pane): the wallpaper `mods/p5-chrome/wallpaper.jpg`, a 3840×2160 JPEG, fit `cover`. There are no dividers between regions, so the bars and the sidebar run edge to edge.
 - **Sidebar, left, 268px:** use `#93000b` at 90% opacity (`#93000be6`) with quieter `#00000020` stripes, so the wallpaper stays behind the text.
   - **Brand row, 46px** (`p5-chrome`): the search and sidebar-toggle buttons, with no brand logo or app icon. Dragging it moves the window.
-  - **Section tags** (`SPACES`, `AGENTS`): transparent PNG assets with black backing and a white outer contour. Spaces and Agents use 50px-tall `title-horizontal.png` labels (Spaces: 145px wide; Agents: 150px wide) with large Japanese text (`空間`, `使者`) and smaller English captions (`Spaces`, `Agents`) to the right of the Japanese text, aligned at the bottom, in 58px title rows. The Herdr app icon is hidden. The New space and agent-sort buttons use white 14px icons in matching 26px hit areas, with a 10px right inset.
+  - **Section tags** (`SPACES`, `AGENTS`): transparent PNG assets with black backing and a white outer contour. Spaces and Agents use 50px-tall `spaces` and `agents` sprite regions (Spaces: 145px wide; Agents: 150px wide) with large Japanese text (`空間`, `使者`) and smaller English captions (`Spaces`, `Agents`) to the right of the Japanese text, aligned at the bottom, in 58px title rows. The Herdr app icon is hidden. The New space and agent-sort buttons use white 14px icons in matching 26px hit areas, with a 10px right inset.
   - **Spaces** (`p5-spaces`): each row has a colored avatar letter and the name in weight-800 italic caps. Under the name is the branch with ahead/behind counts in `#ffb8bd`.
     - Unselected rows are 46px tall (32px without a branch line) with 12px side padding. Every second row is indented 12px for a zig-zag.
     - The active space is a selected-style quad, 66px tall (48px without a branch line), padded 24px left and 20px right, with a `#bdbdbd` branch line. Its black slab and red copy morph like the focused agent's: each corner drifts inward 2% across and 8% up or down (about 5px), the red copy half a period behind.
     - When any agent in the space is working, a 12px `#ffd400` spinner sits right of the name, left of the blocked `!` or done dot.
-  - **Agents** (`p5-agents`): the block grows with its content, from 86px up to 540px, so one card never shows a scrollbar. The focused agent always leads the list above `Pinned` and names its space. Its `SELECTED` label uses the transparent `p5-agents/selected.png` at 95×38px, attached to the card at the top right, replacing the separate 30px section header. Click the tag to collapse the selected group; its folded header reappears so it can be expanded. The default Priority sort then lists sections `Needs you`, `Done`, then `Working` (idle agents are hidden); Grouped by space lists every other agent under its space name. Section labels sit at the right edge, clear of the portraits. Only the display moves: the agent order for next/previous keeps the focused agent in place, or next would bounce between two agents. Each agent is an 84px irregular card, black when focused and dark burgundy (`#4d0008`) otherwise, with 20px above and below:
+  - **Agents** (`p5-agents`): the block grows with its content, from 86px up to 540px, so one card never shows a scrollbar. The focused agent always leads the list above `Pinned` and names its space. Its `SELECTED` label uses the transparent `selected` sprite region at 95×38px, attached to the card at the top right, replacing the separate 30px section header. Click the tag to collapse the selected group; its folded header reappears so it can be expanded. The default Priority sort then lists sections `Needs you`, `Done`, then `Working` (idle agents are hidden); Grouped by space lists every other agent under its space name. Section labels sit at the right edge, clear of the portraits. Only the display moves: the agent order for next/previous keeps the focused agent in place, or next would bounce between two agents. Each agent is an 84px irregular card, black when focused and dark burgundy (`#4d0008`) otherwise, with 20px above and below:
     - **Left:** a 120px party portrait from `p5-agents/portraits/<program.key>.png` (`claude`, `codex`, `opencode`), in a 62px slot, offset 50px left and 20px up so it breaks over both left corners of the card. Other programs show their icon at 30px inside the card. The portraits are 256px, sharp on 2x screens.
     - **Middle:** the name, then a stat line of 20px weight-900 numbers padded to three digits (`HP 048 SP 015`), the padding zeros at 50% opacity, then two 4px bars, the pink one shifted 10px right of the cyan one:
       - `HP` in `#5ef2ff`: minutes left before the prompt cache goes cold. It is full while the agent is working and counts down from its last state change. It shows a `#ffd400` `0` once the time runs out, or when the agent has never run a turn.
@@ -28,8 +28,8 @@ Keep wallpaper visible in the chrome and gutters, with `#0d0d0d` terminal conten
   - **Footer, 92px** (`p5-chrome` with `footer: true`): a black block whose top edge slopes up to the right, holding `SETTINGS` and `ADD MACHINE`.
 - **Tab bar, 46px** (`p5-tabs`): `#93000be6` with `#00000020` stripes, matching the sidebar, aligned with the sidebar's top row. Tabs are 30px tall, spaced 8px apart, with 16px side padding and 12.5px weight-700 italic caps. The active tab is 38px tall with 4px vertical padding and has a black morphing slab with a 1.5px rose outline (`#ff6975`) and a red copy offset 3px. Other tabs use a translucent black slant. Files, Changes and window controls use 26px heights and 14px icons.
 - **Panes** (`main`): `#0d0d0d` content at terminal opacity 0.75 over a transparent pane frame, 12px pane gaps, no border. Work-area gutters are 10px vertically and 12px horizontally; terminal padding is 10px vertically and 12px horizontally. Each pane has a 36px header (`p5-pane`) whose top slopes from 20% height on the left to the top right.
-  - The focused pane uses a `#2a0b10cc` header (80% opacity), a 2px white slanted focus line with a 3px red offset, and a white irregular name tag with black text.
-  - Other panes use a `#1b1115cc` header (80% opacity) and a translucent black name tag with muted text. Header stripes use `#00000018`.
+  - The focused pane's header looks like the tab bar, but in the terminal's own color: a `#0d0d0def` fill (theme background at 0.9375, since `terminal_opacity` 0.75 stacks twice on the terminal: 1 − 0.25²) with `#00000020` stripes, a `#f2e6d6` paper rim along the torn top (as on every torn edge: 0.5–8px wide, mostly thin with now and then a wide strip, in patches of five opacities from 58% to 98% that meet on 45° cuts), and a white irregular name tag with black text.
+  - Other panes use the same `#0d0d0def` header as the focused pane, without the paper rim, and a translucent black name tag with muted text. Header stripes use `#00000018`.
   - Display the project folder name at its root, relative paths inside it, and home-shortened paths elsewhere. Keep the home-shortened full path in the tooltip.
   - Hover to show 26px split, zoom and close controls, matching the other toolbar buttons.
 - **Status bar, 30px** (`p5-status`): `#93000be6` with `#00000020` stripes, matching the sidebar, and 11.5px weight-700 text.
@@ -39,6 +39,11 @@ Keep wallpaper visible in the chrome and gutters, with `#0d0d0d` terminal conten
   - Animation and command-palette controls use translucent key chips. `ANIMATION` still toggles the shared `p5.motion` flag.
 - **Theme** `themes/persona5.json`: terminal background `#0d0d0d`, foreground `#f2f2f2`, selection `#6b000a`, cursor `#ff1a2d`, and a red-leaning ANSI palette. `colors.border` is `#000000` to hide herdr's overlay frame.
 - **Overlays:** the `herdr-q-saddle` overlays (`q-saddle-project`, `q-saddle-ssh`, `q-saddle-tab`) restyle themselves in P5 when `shared('layout') === 'persona5'`.
+  - Place a black-and-white Japanese/English cut-paper title badge across the top-left edge, matching Quick Terminal. Use the shared `assets/title-sprite.png` and generated `sprite-data.js` coordinates: 計画 Projects, 接続 SSH, 作戦 Launcher, 切替 Switch, 指令 Commands, 確認 Confirm. Use a white first glyph on black and a black second glyph on white for every new badge. Render at 260px wide with native clipping. Reserve 20px left of the frame for the badge to cover its upper-left corner without clipping. Keep dynamic titles below the badge.
+  - Store Spaces, Agents, Terminal, their shadows, and Selected in the same runtime sprite. Preserve original source PNGs in `assets/title-sources/`. Run `scripts/build_title_sprite.py` to pack without resizing and verify exact RGBA pixels for all 13 regions. Split generated badges along transparent rows before trimming, since generated glyphs can cross nominal grid boundaries.
+  - Animate outer frames in their own child views every 300ms, keeping content and inputs stationary. Honor `shared("p5.motion")`; use pose 0 and skip redraws while disabled. Offset cyan and magenta copies by 3 and 6 poses respectively, matching Quick Terminal.
+  - Use `p5-picker` for `cmd-p` and `p5-palette` for `cmd-shift-p`. Merge the repo's `keys.json` into the installed file; bind only under `layout:persona5`. Keep the original switcher grouping/navigation and command palette fuzzy search, recents, argument prompts, and fixed-height scrolling. Clone the palette from `frame/palette` into a personal mod instead of editing generated frame files.
+  - `p5-confirm` uses a 560×320 frameless modal with a black irregular slab, white cutout border, cyan/magenta offset shadows, an uppercase italic title, and slanted Cancel/Confirm buttons. Enter confirms; Esc cancels. `p5-menu` routes space closes and last-tab closes to this modal; the tab's × does the same. Keep ordinary tab-close behavior unchanged. Built-in keyboard commands retain Herdr's confirmation because there is no configurable replacement for the built-in `confirm` mod. Opening `mod.open {name: "p5-confirm"}` previews the dialog without a close command.
 
 ## How it behaves
 
@@ -118,9 +123,13 @@ Follow these steps to install the layout for someone. Run them from a clone of t
    cp layouts/persona5.json layouts/persona5.svg ~/.config/herdr-app/layouts/
    cp themes/persona5.json ~/.config/herdr-app/themes/
    cp -R mods/p5-* ~/.config/herdr-app/mods/
+   mkdir -p ~/.config/herdr-app/assets
+   cp assets/title-sprite.png assets/title-sprite.json ~/.config/herdr-app/assets/
    ```
 
 3. Copy the chosen SP file to `sp.js`: `sp-turns.js` for turns, `sp-context.js` for the context window.
+
+   Merge this repo's `keys.json` into the installed `~/.config/herdr-app/keys.json`, preserving all unrelated sections and bindings.
 
    ```sh
    cp ~/.config/herdr-app/mods/p5-agents/sp-turns.js ~/.config/herdr-app/mods/p5-agents/sp.js
@@ -139,12 +148,12 @@ Copy files rather than symlinking them. Herdr doesn't notice edits behind a syml
 
 ## Done when
 
-- `herdr-app check mods/<name>` passes for all six `p5-*` mods.
+- `herdr-app check mods/<name>` passes for all ten `p5-*` mods.
 - `herdr-app status` shows `"errors": []` after `layout.switch {"name":"persona5"}`.
 - A screenshot shows:
   - striped red bars with no divider lines
   - selected-style quads on the section tags, the active tab, the active space and the focused agent
-  - a slanted top on every pane, with a white line on the focused one
+  - a slanted top on every pane, with a red, paper-rimmed tear on the focused one
 - An agent that has never run a turn shows `HP 0 / SP 100`.
 - `bun test` passes.
 - With `sp-context.js`, a Claude Code agent's SP is within 2 of `100 - /context`'s used percent of its window.

@@ -1,0 +1,13 @@
+{
+  "place": "none",
+  "title": "Picker",
+  "overlay": {
+    "kind": "dialog",
+    "frame": "none",
+    "width": 680
+  },
+  "cloned_from": {
+    "name": "picker",
+    "version": "0.1.12"
+  }
+}

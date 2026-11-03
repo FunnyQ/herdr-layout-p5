@@ -9,13 +9,19 @@ A Persona 5 style layout for [herdr-app](https://herdr.dev): deep red striped ba
 - `layouts/persona5.json`: the layout, with `layouts/persona5.svg` as its picker preview.
 - `mods/p5-chrome/wallpaper.jpg`: the window wallpaper, behind 80% opaque bars and see-through panes.
 - `themes/persona5.json`: the terminal theme (near-black background, red-leaning ANSI palette).
-- `mods/`: six mods the layout draws with.
+- `mods/`: ten mods the layout draws with.
   - `p5-chrome`: the sidebar toolbar and footer.
   - `p5-spaces`: the spaces list, with branch and ahead/behind counts.
   - `p5-agents`: agent party cards with HP (prompt cache time left) and SP (turns left, or context window left).
   - `p5-tabs`: the tab bar.
   - `p5-pane`: the slanted pane header.
   - `p5-status`: the status bar.
+  - `p5-confirm`: the confirmation dialog, with white cutout edges and cyan/magenta shadows.
+  - `p5-menu`: context menus that route space closes to the P5 confirmation dialog.
+  - `p5-picker`: the space/tab switcher (`cmd-p`).
+  - `p5-palette`: the command palette (`cmd-shift-p`).
+- `keys.json`: the picker and palette shortcuts, scoped to the Persona 5 layout.
+- `assets/title-sprite.png`: the shared title sprite, including Spaces, Agents, Terminal, their shadows, Selected, and the six modal badges. Copy it to `~/.config/herdr-app/assets/`; keep its coordinate map in `assets/title-sprite.json`.
 
 ## Requirements
 
@@ -37,6 +43,9 @@ The agent asks you how SP should count, then copies the layout, theme and mods i
 
 ## Configure
 
+- Merge `keys.json` into your existing `~/.config/herdr-app/keys.json`; preserve other bindings. The P5 picker and palette replace their shortcuts only while the Persona 5 layout is active.
+- Toggle `ANIMATION` in the status bar to pause the selection slabs and modal frames together. Frames step every 300ms; their cyan and magenta shadows show earlier poses.
+- Modal titles use Japanese/English cut-paper badges above the frame, matching Quick Terminal. Keep dynamic step titles below the badge.
 - If your Claude plan uses the default 5-minute prompt cache, set `CACHE_TTL` in `mods/p5-agents/main.js` to `5 * 60000`. It defaults to 60 minutes.
 
 ## Privacy
@@ -53,6 +62,7 @@ Nothing reaches the network.
 
 ## Known limits
 
+- The P5 confirmation appears when closing a space from its context menu, or closing its last tab from the tab button or context menu. Built-in keyboard commands still use Herdr's confirmation dialog.
 - HP counts from the agent's last state change, not its last API call. It is only meaningful for Claude Code.
 - The context-window SP takes Claude Code's window from `modelSettings.<model>.autoCompactWindow` in `~/.claude/settings.json`, then a top-level `autoCompactWindow`, then 1M. A 200k model with neither set reads too full.
 - The context-window SP finds a Codex session by its `resume` id, else by the newest interactive thread in the agent's folder. Two Codex agents started fresh in the same folder can show the same SP.
@@ -63,3 +73,11 @@ Nothing reaches the network.
 ## Design notes
 
 See [RECIPE.md](RECIPE.md) for the full spec: every color, size and shape, how each mod draws, and the pitfalls found while building it.
+
+Rebuild the title sprite with ImageMagick installed:
+
+```sh
+python3 scripts/build_title_sprite.py --modal-atlas assets/modal-titles-v3_20261103-1903.png --saddle-root ../herdr-q-saddle
+```
+
+Keep the original source PNGs under `assets/title-sources/`. The builder preserves their resolution and verifies every packed region against its source RGBA pixels.
