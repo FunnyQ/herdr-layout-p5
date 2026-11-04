@@ -20,7 +20,7 @@ A Persona 5 style layout for [herdr-app](https://herdr.dev): deep red striped ba
   - `p5-menu`: context menus that route space closes to the P5 confirmation dialog.
   - `p5-picker`: the space/tab switcher (`cmd-p`).
   - `p5-palette`: the command palette (`cmd-shift-p`).
-- `keys.json`: the picker and palette shortcuts, scoped to the Persona 5 layout.
+- `keys.json`: the picker, palette and agent-close shortcuts, scoped to the Persona 5 layout.
 - `assets/title-sprite.png`: the shared title sprite, including Spaces, Agents, Terminal, their shadows, Selected, and the six modal badges. Copy it to `~/.config/herdr-app/assets/`; keep its coordinate map in `assets/title-sprite.json`.
 
 ## Requirements
@@ -62,7 +62,8 @@ Nothing reaches the network.
 
 ## Known limits
 
-- The P5 confirmation appears when closing a space from its context menu, or closing its last tab from the tab button or context menu. Built-in keyboard commands still use Herdr's confirmation dialog.
+- Press `cmd-w` on an agent pane to confirm before ending its terminal. Press Enter to close or Esc to cancel. With split panes, only the focused pane closes. Shell panes keep their ordinary close behavior.
+- The P5 confirmation also appears when closing a space from its context menu, or closing its last tab from the tab button or context menu. Other built-in keyboard commands still use Herdr's confirmation dialog.
 - HP counts from the agent's last state change, not its last API call. It is only meaningful for Claude Code.
 - The context-window SP takes Claude Code's window from `modelSettings.<model>.autoCompactWindow` in `~/.claude/settings.json`, then a top-level `autoCompactWindow`, then 1M. A 200k model with neither set reads too full.
 - The context-window SP finds a Codex session by its `resume` id, else by the newest interactive thread in the agent's folder. Two Codex agents started fresh in the same folder can show the same SP.
