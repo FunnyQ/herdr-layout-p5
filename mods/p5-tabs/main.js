@@ -2,7 +2,7 @@ import { View, div, svg, image, PathBuilder, Background } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { barTear, noise } from "./torn.js";
 import { closeRequest } from "./confirm.js";
-import { spaces, panes, run, openOverlay, theme, window as appWindow, shared, layout, settings } from "herdr";
+import { spaces, panes, focused, nextCommand, run, openOverlay, theme, window as appWindow, shared, setShared, layout, settings } from "herdr";
 
 const STRIPES_FULL = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]]).build();
 const stripes = (path = STRIPES_FULL) => globalThis.window.paint_path(path, Background.pattern_slash("#00000020", 3, 14)).absolute().inset_0();
@@ -71,6 +71,36 @@ export default class Tabs extends View {
     this.morph = cx.new(Morph, {});
     this.pressed = null;
     this.panels = JSON.parse(localStorage.getItem("panels") ?? "{}");
+    cx.spawn(async (cx) => {
+      for (;;) {
+        const command = await nextCommand();
+        if (command === "close-pane") this.closePane();
+        cx.notify();
+      }
+    });
+  }
+
+  closePane() {
+    if (shared("p5.agentCloseOverlay")) return;
+    const pane = panes().find(p => p.pane === focused()?.pane);
+    if (!pane) return;
+    if (!pane.program?.agent) {
+      run("pane.close", { pane: pane.pane });
+      return;
+    }
+    const alone = panes().filter(p => p.tab === pane.tab).length === 1;
+    const overlay = openOverlay({
+      mod: "p5-confirm", kind: "dialog", modal: true, frame: "none", width: 560, height: 360,
+      props: {
+        title: "Close agent?",
+        detail: `${pane.program.name} — ${pane.title}`,
+        warning: "THIS ENDS THE AGENT'S TERMINAL.",
+        command: alone
+          ? { name: "tab.close", args: { id: pane.tab, confirmed: true } }
+          : { name: "pane.close", args: { pane: pane.pane } },
+      },
+    });
+    setShared("p5.agentCloseOverlay", overlay);
   }
 
   // The side panel is remembered per space: switching shows that space's choice

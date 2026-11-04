@@ -1,5 +1,6 @@
 {
   "layout:persona5": {
+    "cmd-w": "p5-tabs.close-pane",
     "cmd-p": "mod.open:p5-picker",
     "cmd-shift-p": "mod.open:p5-palette"
   }

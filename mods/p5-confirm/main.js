@@ -1,6 +1,6 @@
 import { View, div, PathBuilder, Background } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { run, props, closeOverlay } from "herdr";
+import { run, props, closeOverlay, shared, setShared } from "herdr";
 import { Frame } from "./frame.js";
 import { sprite } from "./sprite.js";
 
@@ -17,8 +17,13 @@ export default class Confirm extends View {
     this.closed = false;
   }
 
-  cancel() {
+  close() {
     this.closed = true;
+    if (shared("p5.agentCloseOverlay") === props().overlay) setShared("p5.agentCloseOverlay", null);
+  }
+
+  cancel() {
+    this.close();
     closeOverlay(props().overlay);
   }
 
@@ -55,7 +60,7 @@ export default class Confirm extends View {
           .child(div().text_size(22).line_height(1.05).font_weight(900).italic().text_color("#ffffff").child((p.title ?? "Close space?").toUpperCase()))
           .child(div().flex_1().min_h(0).overflow_y_scrollbar().text_size(14).text_color("#d5d5d5").child(p.detail ?? "herdr-layout-p5 — 1 tab, 2 terminals"))
           .child(div().relative().h(3).w_full().child(shape([[0, 0], ["100%", 0], ["100%", "100%"], [0, "100%"]], Background.pattern_slash("#e60012", 3, 7))))
-          .child(div().text_size(10).font_weight(700).text_color("#ffb8bd").child(p.command ? "THIS ENDS THE TERMINALS IN THIS SPACE." : "PREVIEW / NO TERMINALS WILL BE CLOSED."))
+          .child(div().text_size(10).font_weight(700).text_color("#ffb8bd").child(p.command ? p.warning ?? "THIS ENDS THE TERMINALS IN THIS SPACE." : "PREVIEW / NO TERMINALS WILL BE CLOSED."))
           .child(h_flex().justify_end().gap(12)
             .child(button("cancel", "CANCEL", "ESC", false, () => this.cancel()))
             .child(button("confirm", "CONFIRM", "ENTER", true, () => this.yes())))))
