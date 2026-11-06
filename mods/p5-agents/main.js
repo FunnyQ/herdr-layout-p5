@@ -5,6 +5,7 @@ import { PathBuilder, Background, View, div, image, svg } from "gpui-kit";
 import { sprite } from "./sprite.js";
 import { v_flex, h_flex } from "gpui-base";
 import { sidebarTear, noise } from "./torn.js";
+import { markSelected } from "./selected.js";
 import {
   agents,
   terminals,
@@ -551,6 +552,7 @@ export default class Agents extends View {
     const turns = new Map(terminals().map((x) => [x.address, x.turn ?? 0]));
     this.track(list, now);
     this.hold(list);
+    list = markSelected(list, focused()?.tab);
     const byPriority = sort.id === "priority";
     const urgency = new Map(
       list.map((a) => [
