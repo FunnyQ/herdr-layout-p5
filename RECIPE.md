@@ -31,7 +31,7 @@ Keep wallpaper visible in the chrome and gutters, with `#0d0d0d` terminal conten
   - The focused pane's header looks like the tab bar, but in the terminal's own color: a `#0d0d0def` fill (theme background at 0.9375, since `terminal_opacity` 0.75 stacks twice on the terminal: 1 − 0.25²) with `#00000020` stripes, a `#f2e6d6` paper rim along the torn top (as on every torn edge: 0.5–8px wide, mostly thin with now and then a wide strip, in patches of five opacities from 58% to 98% that meet on 45° cuts), and a white irregular name tag with black text.
   - Other panes use the same `#0d0d0def` header as the focused pane, without the paper rim, and a translucent black name tag with muted text. Header stripes use `#00000018`.
   - Display the project folder name at its root, relative paths inside it, and home-shortened paths elsewhere. Keep the home-shortened full path in the tooltip.
-  - Hover to show 26px split, zoom and close controls, matching the other toolbar buttons.
+  - Hover to show 26px split, zoom, pop-out and close controls, matching the other toolbar buttons.
 - **Status bar, 30px** (`p5-status`): `#93000be6` with `#00000020` stripes, matching the sidebar, and 11.5px weight-700 text.
   - Machine and branch use muted text on translucent black slanted chips.
   - `AGENTS N` uses a black chip with a cyan count at 15px, plus a pink `/N` when agents are blocked.
@@ -54,7 +54,7 @@ Keep wallpaper visible in the chrome and gutters, with `#0d0d0d` terminal conten
   - Hovering a card swaps the time for a pin button.
   - The block resizes itself to fit the cards.
 - Tabs: click to select, double-click to rename, drag to reorder, and scroll the wheel to switch. The × on the active tab closes it.
-- Pane headers: hovering shows the split, zoom and close buttons, and clicking focuses the pane.
+- Pane headers: hovering shows the split, zoom, pop-out and close buttons, and clicking focuses the pane.
 - `ctrl-shift-l` cycles layouts, so the person's own layout stays one key away.
 
 ## Built from

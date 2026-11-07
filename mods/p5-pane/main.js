@@ -1,7 +1,7 @@
 // A pane's header, for layouts that frame their panes:
 //   { "tab": "active", "pane": { "header": { "content": { "mod": "p5-pane" } } } }
 // Shows the program's icon (the app's program table), the agent's name or
-// the terminal's title, the folder, and the agent's status; buttons split, zoom and close
+// the terminal's title, the folder, and the agent's status; buttons split, zoom, pop out and close
 // this pane. Props from the app: { pane, terminal }. Click: focus the pane.
 
 import { View, div, svg, image, PathBuilder, Background } from "gpui-kit";
@@ -47,7 +47,7 @@ const TAG_SHAPE = [
 const TAG = PathBuilder.fill().add_polygon(TAG_SHAPE).build();
 const SLANT = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["88%", "100%"], [0, "100%"]]).build();
 import { h_flex } from "gpui-base";
-import { panes, spaces, props, run, theme, home } from "herdr";
+import { panes, spaces, props, run, exec, theme, home } from "herdr";
 
 function icon(p, size, color) {
   if (!p?.icon) return null;
@@ -60,14 +60,40 @@ function folder(cwd) {
   return cwd === h ? "~" : cwd.startsWith(h + "/") ? "~" + cwd.slice(h.length) : cwd;
 }
 
+// Ghostty's AppleScript opens the window inside one running Ghostty; open -a drops --args once Ghostty runs.
+const GHOSTTY_ATTACH = `on run argv
+  tell application "Ghostty"
+    set cfg to new surface configuration
+    set command of cfg to (quoted form of item 1 of argv) & " attach " & (quoted form of item 2 of argv)
+    new window with configuration cfg
+    activate
+  end tell
+end run`;
+
 export default class Pane extends View {
-  init() { this.hovered = false; }
+  // Ghostty's command may not get the login shell's PATH, so hc goes in by absolute path.
+  init() {
+    this.hovered = false;
+    exec("which", ["hc"]).then((r) => {
+      this.hcPath = r.stdout.trim();
+    });
+  }
 
   me() {
     return panes().find((p) => p.pane === props()?.pane);
   }
 
-  button(t, id, icon, command, args) {
+  popOut(terminal) {
+    if (!this.hcPath) return;
+    exec("osascript", ["-e", GHOSTTY_ATTACH, this.hcPath, terminal]);
+    // app.hide answers ok but does nothing in Herdr 0.1.13; switch back to run("app.hide") once it hides.
+    exec("osascript", [
+      "-e",
+      'tell application "System Events" to set visible of process "Herdr" to false',
+    ]);
+  }
+
+  button(t, id, icon, onClick) {
     return div()
       .id(id)
       .size(26)
@@ -80,9 +106,9 @@ export default class Pane extends View {
       .hover((s) => s.bg(t.hover).text_color(t.foreground))
       .on_click((_e, cx) => {
         cx.stop_propagation();
-        run(command, args);
+        onClick();
       })
-      .child(svg(`mods/pane/${icon}.svg`).size(14));
+      .child(svg(icon).size(14));
   }
 
   render(cx) {
@@ -138,19 +164,113 @@ export default class Pane extends View {
       .text_size(12)
       .on_hover((hovered, cx) => { this.hovered = hovered; cx.notify(); })
       .on_click(() => run("pane.focus", { pane }))
-      .child(h_flex().relative().h(24).pl(10).pr(16).gap(6).items_center().flex_none()
-        .when(p.focused, el => el.child(window.paint_path(TAG, "#e60012").absolute().top(2).left(2).right(-4).bottom(-3)).child(window.paint_path(TAG, "#ffffff").absolute().inset_0()))
-        .when(!p.focused, el => el.child(window.paint_path(SLANT, "#00000055").absolute().inset_0()))
-        .when(Boolean(pic), (el) => el.child(pic))
-        .child(div().truncate().max_w(140).tooltip(name).font_weight(800).italic().text_size(13).text_color(p.focused ? "#000000" : "#d6b6bc").child(name.toUpperCase())))
-      .child(div().flex_1().min_w(0).truncate().text_color("#c9a8af").tooltip(folder(p.cwd)).child(location))
-      .when(st === "working", el => el.child(svg("mods/workspace-chrome/spinner.svg").size(12).flex_none().text_color(t.working).spin(1800)))
-      .when(st === "blocked", el => el.child(div().flex_none().px(6).h(18).flex().items_center().rounded(5).bg(t.blocked + "26").text_size(10.5).font_semibold().text_color(t.blocked).child("Needs you")))
-      .when(st === "done", el => el.child(div().size(7).flex_none().rounded(4).bg(t.done)))
-      .when(this.hovered, el => el
-        .child(this.button(t, `ph-r-${pane}`, "split-right", "pane.split", { direction: "right", pane }))
-        .child(this.button(t, `ph-d-${pane}`, "split-down", "pane.split", { direction: "down", pane }))
-        .child(this.button(t, `ph-z-${pane}`, p.zoomed ? "unzoom" : "zoom", "pane.zoom", { pane }))
-        .child(this.button(t, `ph-x-${pane}`, "close", "pane.close", { pane })));
+      .child(
+        h_flex()
+          .relative()
+          .h(24)
+          .pl(10)
+          .pr(16)
+          .gap(6)
+          .items_center()
+          .flex_none()
+          .when(p.focused, (el) =>
+            el
+              .child(
+                window
+                  .paint_path(TAG, "#e60012")
+                  .absolute()
+                  .top(2)
+                  .left(2)
+                  .right(-4)
+                  .bottom(-3),
+              )
+              .child(window.paint_path(TAG, "#ffffff").absolute().inset_0()),
+          )
+          .when(!p.focused, (el) =>
+            el.child(
+              window.paint_path(SLANT, "#00000055").absolute().inset_0(),
+            ),
+          )
+          .when(Boolean(pic), (el) => el.child(pic))
+          .child(
+            div()
+              .truncate()
+              .max_w(140)
+              .tooltip(name)
+              .font_weight(800)
+              .italic()
+              .text_size(13)
+              .text_color(p.focused ? "#000000" : "#d6b6bc")
+              .child(name.toUpperCase()),
+          ),
+      )
+      .child(
+        div()
+          .flex_1()
+          .min_w(0)
+          .truncate()
+          .text_color("#c9a8af")
+          .tooltip(folder(p.cwd))
+          .child(location),
+      )
+      .when(st === "working", (el) =>
+        el.child(
+          svg("mods/workspace-chrome/spinner.svg")
+            .size(12)
+            .flex_none()
+            .text_color(t.working)
+            .spin(1800),
+        ),
+      )
+      .when(st === "blocked", (el) =>
+        el.child(
+          div()
+            .flex_none()
+            .px(6)
+            .h(18)
+            .flex()
+            .items_center()
+            .rounded(5)
+            .bg(t.blocked + "26")
+            .text_size(10.5)
+            .font_semibold()
+            .text_color(t.blocked)
+            .child("Needs you"),
+        ),
+      )
+      .when(st === "done", (el) =>
+        el.child(div().size(7).flex_none().rounded(4).bg(t.done)),
+      )
+      .when(this.hovered, (el) =>
+        el
+          .child(
+            this.button(t, `ph-r-${pane}`, "mods/pane/split-right.svg", () =>
+              run("pane.split", { direction: "right", pane }),
+            ),
+          )
+          .child(
+            this.button(t, `ph-d-${pane}`, "mods/pane/split-down.svg", () =>
+              run("pane.split", { direction: "down", pane }),
+            ),
+          )
+          .child(
+            this.button(
+              t,
+              `ph-z-${pane}`,
+              `mods/pane/${p.zoomed ? "unzoom" : "zoom"}.svg`,
+              () => run("pane.zoom", { pane }),
+            ),
+          )
+          .child(
+            this.button(t, `ph-o-${pane}`, "mods/p5-pane/pop-out.svg", () =>
+              this.popOut(props().terminal),
+            ),
+          )
+          .child(
+            this.button(t, `ph-x-${pane}`, "mods/pane/close.svg", () =>
+              run("pane.close", { pane }),
+            ),
+          ),
+      );
   }
 }
