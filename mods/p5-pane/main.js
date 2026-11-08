@@ -47,7 +47,16 @@ const TAG_SHAPE = [
 const TAG = PathBuilder.fill().add_polygon(TAG_SHAPE).build();
 const SLANT = PathBuilder.fill().add_polygon([[0, 0], ["100%", 0], ["88%", "100%"], [0, "100%"]]).build();
 import { h_flex } from "gpui-base";
-import { panes, spaces, props, run, exec, theme, home } from "herdr";
+import {
+  panes,
+  spaces,
+  props,
+  run,
+  exec,
+  theme,
+  home,
+  window as win,
+} from "herdr";
 
 function icon(p, size, color) {
   if (!p?.icon) return null;
@@ -77,6 +86,14 @@ export default class Pane extends View {
     exec("which", ["hc"]).then((r) => {
       this.hcPath = r.stdout.trim();
     });
+    if (win().platform === "linux") {
+      exec("hyprctl", ["version"]).then(
+        (r) => {
+          this.hyprland = r.code === 0;
+        },
+        () => {},
+      );
+    }
   }
 
   me() {
@@ -85,6 +102,17 @@ export default class Pane extends View {
 
   popOut(terminal) {
     if (!this.hcPath) return;
+    if (this.hyprland) {
+      // Omarchy only: its 26px bar and 10px gaps; read the work area once another setup needs it.
+      const sh = (s) => `'${s.replaceAll("'", `'\\''`)}'`;
+      const cmd = `ghostty --gtk-single-instance=false -e ${sh(this.hcPath)} attach ${sh(terminal)}`;
+      exec("hyprctl", [
+        "dispatch",
+        `hl.dsp.exec_cmd(${JSON.stringify(cmd)}, { float = true, size = { "(monitor_w-20)", "(monitor_h-46)" }, center = true })`,
+      ]);
+      return;
+    }
+    if (win().platform !== "macos") return;
     exec("osascript", ["-e", GHOSTTY_ATTACH, this.hcPath, terminal]);
     // app.hide answers ok but does nothing in Herdr 0.1.13; switch back to run("app.hide") once it hides.
     exec("osascript", [
